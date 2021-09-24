@@ -34,6 +34,36 @@ get_airnow_daterange <- function(start, end, states) {
 
 }
 
+# only works on dateranges within a single calendar year
+get_airsis_daterange <- function(start, end, states) {
+
+  end <- end + 1
+
+  if (Sys.Date() - end < 45) {
+    raw1 <- PWFSLSmoke::airsis_loadDaily() %>%
+      PWFSLSmoke::monitor_subset(tlim = c(lubridate::force_tz(start, "America/Los_Angeles"),
+                                          lubridate::force_tz(end, "America/Los_Angeles")),
+                                 stateCodes = states)
+  }
+  if (Sys.Date() - start > 45) {
+    raw2 <- PWFSLSmoke::airsis_loadAnnual(lubridate::year(start)) %>%
+      PWFSLSmoke::monitor_subset(tlim = c(lubridate::force_tz(start, "America/Los_Angeles"),
+                                          lubridate::force_tz(end, "America/Los_Angeles")),
+                                 stateCodes = states)
+  }
+
+  if (exists("raw1")) {
+    if (exists("raw2")) {
+      return(PWFSLSmoke::monitor_combine(list(raw1, raw2)))
+    } else {
+      return(raw1)
+    }
+  } else {
+    return(raw2)
+  }
+
+}
+
 # Switch from the compact ws format to a square tibble, get daily mean,
 # calculate Log, make spatial, and reproject
 recast_monitors <- function(mon) {
