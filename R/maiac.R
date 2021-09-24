@@ -60,6 +60,26 @@ maiac_fill_gaps <- function(maiac, window = 7) {
 
 }
 
+# This version fills gaps using surrounding data in stages with increasing window sizes.
+# 5x5, then 9x9, then 25x25. Finally filling the remainder with the median value
+maiac_fill_gaps_complete <- function(maiac) {
+
+  md <- terra::global(maiac, fun = median, na.rm = TRUE) %>%
+    .$global
+
+  fill1 <- terra::focal(maiac, w = 5, fun = "mean", na.rm = TRUE, na.only = TRUE)
+  blanks <- fill1 == 0
+  fill1[blanks] <- NA
+  fill2 <- terra::focal(fill1, w = 9, fun = "mean", na.rm = TRUE, na.only = TRUE)
+  blanks <- fill2 == 0
+  fill2[blanks] <- NA
+  fill3 <- terra::focal(fill2, w = 25, fun = "mean", na.rm = TRUE, na.only = TRUE)
+  blanks <- fill3 == 0
+  med_fill <- blanks * md
+  final <- fill3 + med_fill
+
+}
+
 
 extract_maiac <- function(maiac, locs) {
 
@@ -84,7 +104,7 @@ maiac_one_day <- function(dt, input_path = "./data/MAIAC/",
 
   tiles <- purrr::map(paths, maiac_aod)
   maiac <- maiac_mosaic(tiles) %>%
-    maiac_fill_gaps()
+    maiac_fill_gaps_complete()
 
 }
 
