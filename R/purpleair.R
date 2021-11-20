@@ -7,6 +7,7 @@ get_purpleair_daterange <- function(start, end, states) {
   AirSensor::setArchiveBaseUrl("https://airfire-data-exports.s3-us-west-2.amazonaws.com/PurpleAir/v1")
 
   get_one_day <- function(dt, states) {
+
     # only include sensors that reported recently (hr 20 on this day)
     valid_datetime <- as.POSIXct(dt) + (20 * 60 * 60)
     AirSensor::pas_load(strftime(dt, format = "%Y%m%d"),
@@ -172,3 +173,56 @@ krige_purpleair_all <- function(pa_data, out_locs, vgms) {
   all <- purrr::map_dfr(dates, process_one_ok, out_locs, vgms, rows)
 
 }
+
+# Find avaiable purple air sensors for creating an archive (pre-canned archive
+# only goes back to April 5, 2019)
+create_purpleair_archive <- function(dt1, dt2, states = "CA", pas = NULL,
+                                     path = "./data/purpleair") {
+  # Get the oldest possible snapshot
+  AirSensor::setArchiveBaseUrl("http://data.mazamascience.com/PurpleAir/v1")
+  if (is.null(pas)) {
+    pas <- AirSensor::pas_load("20190406", archival = TRUE) %>%
+      filter(stateCode %in% states)
+  }
+
+  ids <- AirSensor::pas_getDeviceDeploymentIDs(pas, isOutside = TRUE)
+
+  pb <- progress::progress_bar$new(total = length(ids))
+  pas <- purrr::map_dfr(ids, pat_to_paslike, dt1, dt2, pas, pb)
+
+}
+
+# For a given device and time range, acquire available data raw data and return
+# 24-hr average results in a pas-like format
+pat_to_paslike <- function(deviceDeploymentID, dt1, dt2, pas, pb) {
+
+  pb$tick()
+  try_pat <- purrr::possibly(AirSensor::pat_createNew, otherwise = NULL)
+  pat <- try_pat(id = deviceDeploymentID, pas = pas, startdate = dt1,
+                 enddate = dt2, verbose = TRUE)
+  if (is.null(pat)) {
+    return(NULL)
+  }
+
+  m <- pat$meta
+
+  # Keep only data when the two channels are tracking
+  # Keep only values that either have abs(SRD) < 0.5 or Avg < 2
+  df <- pat$data %>%
+    mutate(datetime = lubridate::with_tz(datetime, tzone = m$timezone[1]),
+           Date = lubridate::floor_date(datetime, unit = "days"),
+           SAD = (pm25_A - pm25_B) / sqrt(2),
+           Avg = (pm25_A + pm25_B) / 2,
+           SRD = SAD/Avg) %>%
+    filter(abs(SRD) <= 0.5 | Avg < 2) %>%
+    group_by(Day) %>%
+    summarise(across(pm25_A:pm10_atm_B, ~ mean(.x, na.rm = TRUE)),
+              Count = n()) %>%
+    mutate(Fraction = Count / 1440,
+           pm25_1day = (pm25_A + pm25_B) / 2,
+           ID = m$ID)
+
+  df <- right_join(m, df, by = "ID")
+
+}
+
