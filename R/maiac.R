@@ -29,13 +29,53 @@ modis_tile_pick <- function(llat, ulat, llon, rlon) {
 
 }
 
+maiac_download <- function(dt, user, password, outpath = "./data/MAIAC/",
+                           tiles_needed = c("h08v04", "h08v05", "h09v04")) {
+
+  base_url <- "https://e4ftl01.cr.usgs.gov/MOTA/MCD19A2.006/"
+
+  # Date
+  dt_str <- strftime(dt, format = "%Y.%m.%d")
+
+  # Need to get contents of the folder to create the correct filenames
+  folder <- paste0(base_url, dt_str)
+  all_files <- rvest::read_html(folder) %>%
+    rvest::html_elements("a") %>%
+    rvest::html_text()
+
+  # File the filenames that fit the pattern for this date and tile
+  dt_str2 <- strftime(dt, format = "%Y%j")
+  patterns <- paste("MCD19A2.A", dt_str2, ".", tiles_needed, ".+hdf$",
+                    sep = "")
+  files_needed <- purrr::map_chr(patterns,
+                                 ~stringr::str_subset(all_files, pattern = .x))
+
+
+  # Now, download each file
+  download_one <- function(filename, user, pw) {
+    fileUrl <- paste0(folder, "/", filename)
+    httr::GET(fileUrl, httr::authenticate(user, pw),
+              httr::write_disk(paste0(outpath, filename)), httr::timeout(60))
+  }
+
+  purrr::walk(files_needed, download_one, user, password)
+
+}
+
+safe_cut <- purrr::possibly(`[`, otherwise = NULL)
+# Need to handle bad files with a passthrough here
+
 maiac_aod <- function(fname) {
-  # sds <- MODIS::getSds(fname)
-  # tile <- raster::raster(rgdal::readGDAL(sds$SDS4gdal[6], as.is = TRUE))
+
   sds <- terra::sds(fname)
-  stack <- sds$Optical_Depth_047
-  # There are multiple overpasses in the file, so we combine them with avg
-  r <- terra::mean(stack, na.rm = TRUE)
+  stack <- safe_cut(sds, 1)
+  if (!is.null(stack)) {
+    # There are multiple overpasses in the file, so we combine them with avg
+    r <- terra::mean(stack, na.rm = TRUE)
+    return(r)
+  } else {
+    return(NULL)
+  }
 
 }
 
@@ -103,6 +143,8 @@ maiac_one_day <- function(dt, input_path = "./data/MAIAC/",
   paths <- paste0(input_path, files)
 
   tiles <- purrr::map(paths, maiac_aod)
+  # Remove bad tiles
+  tiles <- Filter(Negate(is.null), tiles)
   maiac <- maiac_mosaic(tiles) %>%
     maiac_fill_gaps_complete()
 
