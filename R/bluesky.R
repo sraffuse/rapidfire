@@ -1,4 +1,4 @@
-
+# Really need to clean this up and make more consistent names
 # Tools for downloading and extracting BlueSky output
 
 grab_bluesky <- function(start, end, output_path = "./data/bluesky/NAM/",
@@ -82,6 +82,7 @@ bluesky_at_airnow <- function(an, bluesky_path = "./data/bluesky/NAM",
 }
 
 
+
 # Take a raster stack of 24-hr avg PM2.5 and extract values at a set of
 # locations on multiple days
 preprocessed_bluesky_at_airnow <- function(stack, an) {
@@ -93,6 +94,8 @@ preprocessed_bluesky_at_airnow <- function(stack, an) {
     stop("Stack and dates do not match!")
   }
 
+  # Make sure coordinates match
+  an <- sp::spTransform(an, sp::CRS(stack@crs@projargs))
 
   one_day <- function(dt, layer, an) {
 
@@ -109,6 +112,39 @@ preprocessed_bluesky_at_airnow <- function(stack, an) {
   }
 
   purrr::map2_dfr(dates, layers, one_day, an)
+
+}
+
+# Load a raster of BlueSky archive (single day surface PM25)
+read_bluesky_archive <- function(dt, path = "./data/bluesky/archive") {
+
+  filename <- paste0(strftime(dt, format = "%Y%m%d"), "_24hrAvg.nc")
+  full_path <- fs::path_join(c(path, filename))
+
+  nc <- ncdf4::nc_open(full_path)
+  g <- ncdf4::ncatt_get(nc, 0)
+  pm <- ncdf4::ncvar_get(nc, "PM25")
+
+  xmn <- g$XORIG
+  ymn <- g$YORIG
+  xmx <- xmn + g$XCELL * g$NCOLS
+  ymx <- ymn + g$YCELL * g$NROWS
+
+  # Need to both transpose and flip
+  pmt <- t(pm)
+  r <- raster::raster(pmt, xmn = xmn, ymn = ymn, xmx = xmx, ymx = ymx,
+                      crs = "+proj=longlat +datum=WGS84")
+  print(paste(dt, r@ncols))
+  # These are upside down
+  r <- raster::flip(r, "y")
+
+}
+
+stack_bluesky_archive <- function(dt1, dt2, path = "./data/bluesky/archive") {
+
+  dates <- seq.Date(from = dt1, to = dt2, by = "1 day")
+  rasters <- purrr::map(dates, read_bluesky_archive, path = path)
+  raster::stack(rasters)
 
 }
 
