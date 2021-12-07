@@ -134,7 +134,6 @@ read_bluesky_archive <- function(dt, path = "./data/bluesky/archive") {
   pmt <- t(pm)
   r <- raster::raster(pmt, xmn = xmn, ymn = ymn, xmx = xmx, ymx = ymx,
                       crs = "+proj=longlat +datum=WGS84")
-  print(paste(dt, r@ncols))
   # These are upside down
   r <- raster::flip(r, "y")
 
@@ -148,11 +147,51 @@ stack_bluesky_archive <- function(dt1, dt2, path = "./data/bluesky/archive") {
 
 }
 
+# These two are like read_bluesky_archive and stack_bluesky_archive, but for the HAQAST CMAQ data
+read_haqast_archive <- function(dt, path = "./data/bluesky/HAQAST_S1") {
+
+  filename <- paste0("out.combine_", strftime(dt, format = "%Y%m%d"))
+  full_path <- fs::path_join(c(path, filename))
+
+  nc <- ncdf4::nc_open(full_path)
+  g <- ncdf4::ncatt_get(nc, 0)
+  pm <- ncdf4::ncvar_get(nc, "PM25_TOT")
+
+  xmn <- g$XORIG
+  ymn <- g$YORIG
+  xmx <- xmn + g$XCELL * g$NCOLS
+  ymx <- ymn + g$YCELL * g$NROWS
+
+  # Get the projection info
+  proj_string <- glue::glue("+proj=lcc +lon_0={g$XCENT} +lat_1={g$P_ALP} ",
+                            "+lat_2={g$P_BET} +lat_0={g$YCENT} +units=m ",
+                            "+a=6370000.0 +b=6370000.0")
+
+  # Need to both transpose and flip
+  pmb <- raster::brick(pm, xmn = xmn, ymn = ymn, xmx = xmx, ymx = ymx,
+                       transpose = TRUE,  crs = proj_string)
+  pmb <- raster::flip(pmb, "y")
+
+  # Calculate 24-hr average
+  r <- raster::mean(pmb, na.rm = TRUE)
+
+  # Put in unprojected coordinates
+  projected <- raster::projectRaster(r, crs = sp::CRS("+proj=longlat"))
+
+}
+
+stack_haqast_archive <- function(dt1, dt2, path = "./data/bluesky/HAQAST_S1") {
+
+  dates <- seq.Date(from = dt1, to = dt2, by = "1 day")
+  rasters <- purrr::map(dates, read_haqast_archive, path = path)
+  raster::stack(rasters)
+
+}
+
 bluesky_at_grid <- function(start, end, grid, bluesky_path = "./data/bluesky/NAM") {
 
   dates <- seq.Date(from = start, to = end, by = "1 day")
   one_day <- function(dt, grid) {
-    print(dt)
     filename <- paste0(strftime(dt, format = "%Y%m%d"), "00zNAM3km.nc")
     full_path <- fs::path_join(c(bluesky_path, filename))
 
@@ -207,4 +246,22 @@ preprocessed_bluesky_at_grid <- function(start, end, stack, grid) {
   layer <- 1:length(dates)
   purrr::map2_dfr(dates, layer, one_day, grid)
 
+}
+
+# For a given spatial points data frame, assign bluesky archive values for all
+# of the needed dates
+bluesky_archive_at_locs <- function(locs, path = "./data/bluesky/archive/") {
+
+  dates <- unique(locs$Day)
+
+  one_day <- function(dt) {
+    r <- read_bluesky_archive(dt, path)
+    l <- locs[locs$Day == dt,]
+    e <- raster::extract(r, l)
+
+    df <- l@data %>%
+      mutate(PM25_bluesky = e)
+  }
+
+  purrr::map_dfr(dates, one_day)
 }
