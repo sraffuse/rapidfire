@@ -7,7 +7,8 @@
 # PBLH - hpbl
 
 get_narr <- function(year, vars = c("air.2m", "uwnd.10m", "vwnd.10m", "rhum.2m",
-                                    "apcp", "hpbl"), out_path) {
+                                    "apcp", "hpbl"),
+                     out_path = "./data/NARR") {
 
   fnarr <- function(variable, year, path) {
     Reanalysis::NARRdownloadNetCDF(startYear = year, endYear = year,
