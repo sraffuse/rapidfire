@@ -226,3 +226,33 @@ pat_to_paslike <- function(deviceDeploymentID, dt1, dt2, pas, pb) {
 
 }
 
+
+# Krige monitor data for all locations and dates in an input SpatialPointsDataFrame
+krige_purpleair_sitedates <- function(pa_data, outlocs, vgms) {
+
+  dates <- unique(outlocs$Day)
+  rows <- purrr::map_dfr(vgms, ~.x$d, .id = "row") %>%
+    mutate(row = as.numeric(row)) %>%
+    select(row, Date)
+
+  process_one_ok <- function(date, pa_data, outlocs, vgms, rows) {
+    # extract the correct model data
+    row <- filter(rows, Date == date) %>%
+      distinct() %>%
+      .$row
+    mod <- vgms[[row]]$m
+    locs <- pa_data[pa_data$Date == date,]
+    outlocs <- outlocs[outlocs$Day == date,]
+    print(date)
+    ok <- gstat::krige(Purple_log ~ 1, locations = locs, newdata = outlocs,
+                       model = mod)
+
+    # Attach to measured values
+    output <- outlocs@data
+    output$PM25_log_PAK <- ok$var1.pred
+    output$PM25_log_PAvar <- ok$var1.var
+    output
+
+  }
+  all <- purrr::map_dfr(dates, process_one_ok, pa_data, outlocs, vgms, rows)
+}
