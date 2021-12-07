@@ -216,6 +216,7 @@ krige_airnow <- function(an_data, vgms) {
 
 # This returns a data frame
 krige_airnow_all <- function(an, outlocs, vgms) {
+
   dates <- unique(an$Day)
   rows <- purrr::map_dfr(vgms, ~.x$d, .id = "row") %>%
     mutate(row = as.numeric(row)) %>%
@@ -241,5 +242,35 @@ krige_airnow_all <- function(an, outlocs, vgms) {
 
   }
 
+  all <- purrr::map_dfr(dates, process_one_ok, an, outlocs, vgms, rows)
+}
+
+# Krige monitor data for all locations and dates in an input SpatialPointsDataFrame
+krige_airnow_sitedates <- function(an, outlocs, vgms) {
+
+  dates <- unique(outlocs$Day)
+  rows <- purrr::map_dfr(vgms, ~.x$d, .id = "row") %>%
+    mutate(row = as.numeric(row)) %>%
+    select(row, Day)
+
+  process_one_ok <- function(date, an, outlocs, vgms, rows) {
+    # extract the correct model data
+    row <- filter(rows, Day == date) %>%
+      distinct() %>%
+      .$row
+    mod <- vgms[[row]]$m
+    locs <- an[an$Day == date,]
+    outlocs <- outlocs[outlocs$Day == date,]
+    print(date)
+    ok <- gstat::krige(PM25_log ~ 1, locations = locs, newdata = outlocs,
+                       model = mod)
+
+    # Attach to measured values
+    output <- outlocs@data
+    output$PM25_log_ANK <- ok$var1.pred
+    output$PM25_log_var <- ok$var1.var
+    output
+
+  }
   all <- purrr::map_dfr(dates, process_one_ok, an, outlocs, vgms, rows)
 }
