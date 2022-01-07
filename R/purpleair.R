@@ -7,7 +7,6 @@ get_purpleair_daterange <- function(start, end, states) {
   AirSensor::setArchiveBaseUrl("https://airfire-data-exports.s3-us-west-2.amazonaws.com/PurpleAir/v1")
 
   get_one_day <- function(dt, states) {
-
     # only include sensors that reported recently (hr 20 on this day)
     valid_datetime <- as.POSIXct(dt) + (20 * 60 * 60)
     AirSensor::pas_load(strftime(dt, format = "%Y%m%d"),
@@ -215,7 +214,7 @@ pat_to_paslike <- function(deviceDeploymentID, dt1, dt2, pas, pb) {
            Avg = (pm25_A + pm25_B) / 2,
            SRD = SAD/Avg) %>%
     filter(abs(SRD) <= 0.5 | Avg < 2) %>%
-    group_by(Day) %>%
+    group_by(Date) %>%
     summarise(across(pm25_A:pm10_atm_B, ~ mean(.x, na.rm = TRUE)),
               Count = n()) %>%
     mutate(Fraction = Count / 1440,
