@@ -64,7 +64,7 @@ predict_locs <- function(dt1, dt2, states = "CA", model, locations,
     select(monitorID, Day, PM25_log_PAK)
   # NARR
   narr_in <- narr %>%
-    select(-PM25, -Source)
+    select(-one_of("PM25"), -one_of("Source"))
   # Bluesky
   bluesky_in <- bluesky %>%
     select(monitorID, Day, PM25_bluesky)
@@ -79,7 +79,7 @@ predict_locs <- function(dt1, dt2, states = "CA", model, locations,
     left_join(maiac_in, by = c("monitorID", "Day")) %>%
   # Replace missing and non-finite values with overall median
     mutate(across(where(is.numeric),
-                  ~if_else(is.finite(.x), .x, median(.x, na.rm = TRUE))))
+                  ~ifelse(is.finite(.x), .x, median(.x, na.rm = TRUE))))
 
   results$PM25_log_RF <- predict(model, results)
   return(results)
