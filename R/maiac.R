@@ -160,7 +160,7 @@ maiac_at_airnow <- function(an, maiac_path = "./data/MAIAC/",
     locs = an[i, ]
     e <- extract_maiac(maiac_aod, locs)
     df <- locs@data %>%
-      mutate(MAIAC_AOD = e$mean)
+      mutate(MAIAC_AOD = e$focal_mean)
   }
 
   dates <- unique(an$Day)
