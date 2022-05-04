@@ -142,7 +142,10 @@ read_bluesky_archive <- function(dt, path = "./data/bluesky/archive") {
 stack_bluesky_archive <- function(dt1, dt2, path = "./data/bluesky/archive") {
 
   dates <- seq.Date(from = dt1, to = dt2, by = "1 day")
-  rasters <- purrr::map(dates, read_bluesky_archive, path = path)
+  # Handle missing days
+  safe_read <- purrr::possibly(read_bluesky_archive, NULL)
+  rasters <- purrr::map(dates, safe_read, path = path)
+  rasters <- rasters[lengths(rasters) != 0]
   raster::stack(rasters)
 
 }
