@@ -177,10 +177,20 @@ krige_purpleair_all <- function(pa_data, out_locs, vgms) {
 # only goes back to April 5, 2019)
 create_purpleair_archive <- function(dt1, dt2, states = "CA", pas = NULL,
                                      path = "./data/purpleair") {
+
+  if (dt1 < as.Date("2019-04-06")) {
+    load_date <- "20190406"
+  } else {
+    load_date <- strftime(dt1, format = "%Y%m%d")
+  }
+
+  # Add a day to the end because of date squirrelyness
+  dt2 <- dt2 + 1
+
   # Get the oldest possible snapshot
   AirSensor::setArchiveBaseUrl("http://data.mazamascience.com/PurpleAir/v1")
   if (is.null(pas)) {
-    pas <- AirSensor::pas_load("20190406", archival = TRUE) %>%
+    pas <- AirSensor::pas_load(load_date, archival = TRUE) %>%
       filter(stateCode %in% states)
   }
 
