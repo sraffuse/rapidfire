@@ -106,18 +106,29 @@ On some days, the model did not run successfully. For those days, data were back
 
 ### Satellite Aerosol Optical Depth
 
-Satellite aerosol optical depth (AOD) is a measure of the total columnar aerosol light extinction from the satellte sensor to the ground. AOD is indirectly related to PM~2.5~, with the relationship depending on aerosol type, humidity, and aerosol vertical profile [ref]. We used AOD from the Multi-Angle Implementation of Atmospheric Correction (MAIAC) project [ref]. MAIAC is an algorithm that uses time series analysis and additional processing to improve aerosol retrievals, atmospheric correction, and, importantly, cloud detection from the MODerate-resolution Imaging Spectroradiometers (MODIS) onboard NASA's Terra and Aqua satellites [Lyapustin et al, 2011a,b; 2021; 2018]. Past work has shown that thick smoke is often mistaken for clouds in the standard MODIS algorithms [ref], which hampers their use in wildfire conditions.  
+Satellite aerosol optical depth (AOD) is a measure of the total columnar aerosol light extinction from the satellite sensor to the ground. AOD is indirectly related to PM~2.5~, with the relationship depending on aerosol type, humidity, and aerosol vertical profile [ref]. We used AOD from the Multi-Angle Implementation of Atmospheric Correction (MAIAC) project [ref]. MAIAC is an algorithm that uses time series analysis and additional processing to improve aerosol retrievals, atmospheric correction, and, importantly, cloud detection from the MODerate-resolution Imaging Spectroradiometers (MODIS) onboard NASA's Terra and Aqua satellites [Lyapustin et al, 2011a,b; 2021; 2018]. Past work has shown that thick smoke is often mistaken for clouds in the standard MODIS algorithms [ref], which hampers their use in wildfire conditions.  
 The `rapidfire::maiac_download` function can be used to acquire the 1-km daily atmosphere product (MCD19A2) which contains AOD. Clouds prevent the retrieval of AOD, and there are sometimes clouds present even in the hot, dry conditions during California wildfires. The data fusion algorithm requires a complete data set, so a placeholder value must be used to gap-fill in locations under clouds. Previous work has used model-simuluated AOD, along with meteorological variables in a data fusion approach to gap-fill satellite-observed AOD [Zou 2019]. For this work, where clouds cover less of the domain, we took a simpler approach. Missing AOD values were filled using a three-stage focal average, available in `rapidfire::maiac_fill_gaps_complete`. [more to describe the figure]
 
 -- figure illustrating the gap filling approach
 
 ### Low-cost Sensors
 
+There has been a proliferation of low-cost sensors that estimate PM~2.5~ deployed by the public across the world in the last decade. We used data from the PurpleAir network, which has grown to over 6500 outdoor sensors in California as of 2021. While PurpleAir estimates of PM~2.5~ concentration have been shown to be biased, and are dependent on humidity and aerosol type [ref], they still strongly correlate with PM~2.5~ observed at FEM monitors and provide invaluable spatial and temporal information that is not available with the relatively sparse network of monitors. Because these sensors are not quality controlled or validated, and their sighting may be suspect, care must be taken when using them in modeling.  
+rapidfire takes advantage of the AirSensor R package [Mazama Science] for discovering and acquiring PurpleAir sensor data from sensors designated as "outdoor." `rapidfire::create_purpleair_archive` was used to download and preprocess PurpleAir data from two-channel, 1-minute estimates to single 24-hr average values. The two channels were compared and data were only kept if both values were low ($<2\,\unit{\mu g\,m^{-3}}$) or were within a scaled relative difference ($SRD$) between channels $A$ and $B$ of 0.5. A daily mean was calculated for both channels and those were then averaged to produce a final daily estimate for the sensor. 
 
+\begin{equation}
+SRD=\frac{A-B}{\sqrt{2}}/\frac{A+B}{2}.  
+\end{equation}
 
-### Meteorology
+In addition to the channel comparison, we also employed a spatial test to remove sensors that were significantly different from their neighbors. rapidfire::purpleair_clean_spatial_outliers removes any sensors that are more that two standard deviations away from the median of all sites within $10\unit {km}$. PurpleAir estimates used in data fusion were interpolated using ordinary kriging.
+
+### Meteorology  
+
+Meteorological conditions can help explain the relationships between our inputs and observed PM~2.5~. For example, the PurpleAir sensor is sensitive to relative humidity. AOD is sensitive to humidty and planetary boundary layer height. Following Zou et al. (2019), We included several meteorological variables in our model, including temperature, winds, humidity, boundary layer height, and rainfall. These variables were acquired from the North American Regional Renanalysis (NARR) data set [ref].
 
 ## Data Fusion
+
+Our approach
 
 ## Model Training and Validation
 

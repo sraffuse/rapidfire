@@ -220,7 +220,7 @@ model run.
 \subsubsection{Satellite Aerosol Optical Depth}
 
 Satellite aerosol optical depth (AOD) is a measure of the total columnar
-aerosol light extinction from the satellte sensor to the ground. AOD is
+aerosol light extinction from the satellite sensor to the ground. AOD is
 indirectly related to PM\textsubscript{2.5}, with the relationship
 depending on aerosol type, humidity, and aerosol vertical profile
 {[}ref{]}. We used AOD from the Multi-Angle Implementation of
@@ -249,9 +249,54 @@ average, available in \texttt{rapidfire::maiac\_fill\_gaps\_complete}.
 
 \subsubsection{Low-cost Sensors}
 
+There has been a proliferation of low-cost sensors that estimate
+PM\textsubscript{2.5} deployed by the public across the world in the
+last decade. We used data from the PurpleAir network, which has grown to
+over 6500 outdoor sensors in California as of 2021. While PurpleAir
+estimates of PM\textsubscript{2.5} concentration have been shown to be
+biased, and are dependent on humidity and aerosol type {[}ref{]}, they
+still strongly correlate with PM\textsubscript{2.5} observed at FEM
+monitors and provide invaluable spatial and temporal information that is
+not available with the relatively sparse network of monitors. Because
+these sensors are not quality controlled or validated, and their
+sighting may be suspect, care must be taken when using them in
+modeling.\\
+rapidfire takes advantage of the AirSensor R package {[}Mazama
+Science{]} for discovering and acquiring PurpleAir sensor data from
+sensors designated as ``outdoor.''
+\texttt{rapidfire::create\_purpleair\_archive} was used to download and
+preprocess PurpleAir data from two-channel, 1-minute estimates to single
+24-hr average values. The two channels were compared and data were only
+kept if both values were low (\(<2\,\unit{\mu g\,m^{-3}}\)) or were
+within a scaled relative difference (\(SRD\)) between channels \(A\) and
+\(B\) of 0.5. A daily mean was calculated for both channels and those
+were then averaged to produce a final daily estimate for the sensor.
+
+\begin{equation}
+SRD=\frac{A-B}{\sqrt{2}}/\frac{A+B}{2}.  
+\end{equation}
+
+In addition to the channel comparison, we also employed a spatial test
+to remove sensors that were significantly different from their
+neighbors. rapidfire::purpleair\_clean\_spatial\_outliers removes any
+sensors that are more that two standard deviations away from the median
+of all sites within \(10\unit {km}\). PurpleAir estimates used in data
+fusion were interpolated using ordinary kriging.
+
 \subsubsection{Meteorology}
 
+Meteorological conditions can help explain the relationships between our
+inputs and observed PM\textsubscript{2.5}. For example, the PurpleAir
+sensor is sensitive to relative humidity. AOD is sensitive to humidty
+and planetary boundary layer height. Following Zou et al.~(2019), We
+included several meteorological variables in our model, including
+temperature, winds, humidity, boundary layer height, and rainfall. These
+variables were acquired from the North American Regional Renanalysis
+(NARR) data set {[}ref{]}.
+
 \subsection{Data Fusion}
+
+Our approach
 
 \subsection{Model Training and Validation}
 
