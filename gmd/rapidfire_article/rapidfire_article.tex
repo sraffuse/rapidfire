@@ -195,10 +195,10 @@ The daily average data from both the permanent and temporary monitors
 were combined into a single data set. The spatial extent of the monitors
 used in this analysis are shown in Figure {[}xx{]}. Portions of this
 monitor data set were withheld for development and validation of the
-model. PM\textsubscript{2.5} observations were interpolated to estimate
-concentrations at locations away from the monitors using ordinary
-kriging. 30\% of the monitoring data were withheld as test data to
-develop model variograms using
+model. PM\textsubscript{2.5} observations were log-transformed and
+interpolated to estimate concentrations at locations away from the
+monitors using ordinary kriging. 30\% of the monitoring data were
+withheld as test data to develop model variograms using
 \texttt{rapidfire::create\_airnow\_variograms}.
 
 -- figure of Permanent and Temporary monitors.
@@ -281,7 +281,8 @@ to remove sensors that were significantly different from their
 neighbors. rapidfire::purpleair\_clean\_spatial\_outliers removes any
 sensors that are more that two standard deviations away from the median
 of all sites within \(10\unit {km}\). PurpleAir estimates used in data
-fusion were interpolated using ordinary kriging.
+fusion were log-transformed and then interpolated using ordinary
+kriging.
 
 \subsubsection{Meteorology}
 
@@ -291,12 +292,43 @@ sensor is sensitive to relative humidity. AOD is sensitive to humidty
 and planetary boundary layer height. Following Zou et al.~(2019), We
 included several meteorological variables in our model, including
 temperature, winds, humidity, boundary layer height, and rainfall. These
-variables were acquired from the North American Regional Renanalysis
+variables were acquired from the North American Regional Reanalysis
 (NARR) data set {[}ref{]}.
 
 \subsection{Data Fusion}
 
-Our approach
+We developed event specific models using random forests regression (RF).
+RF is a technique that uses a large number of randomly generated
+regression trees \citep{Breiman2001}. Each tree is constructed using a
+random subset of the training data and each node uses a random subset of
+the potential predictive variables. New values are estimated as the mean
+prediction of the individual trees. For each RF run, 500 trees were
+grown. A single tuning parameter, the number of variables selected at
+each node, was varied between 2 and 5. The model was trained using
+10-fold cross-validation. Internally, rapidfire::develop\_model uses the
+randomForest R package.\\
+For the final model, 10 predictor variables were used (Table
+\ref{table:1}). PM\textsubscript{2.5} from the monitors was used as both
+a predictor and a target variable. A random subset of 30\% of the
+monitoring data was withheld for model validation.
+
+\begin{table}[h]
+\caption{Predictor variables used in the rapidfire RF model.}
+\begin{tabular}{ll}
+Variable       & Description                                                                    \\ \hline
+PM25\_log\_ANK & Log-transformed, interpolated $PM_{2.5}$ from permanent and temporary monitors \\
+PM25\_log\_PAK & Log-transformed, interpolated $PM_{2.5}$ estimates from PurpleAir sensors      \\
+PM25\_bluesky  & Daily average ground-level $PM_{2.5}$ predictions from BlueSky smoke model     \\
+MAIAC\_AOD     & Gap-filled  daily AOD from MAIAC                                               \\
+air.2m         & Daily average ambient temperature at $2\unit{m}$ above ground level from NARR  \\
+uwnd.10m       & Daily average u component of wind at $10\unit{m}$ above ground level from NARR \\
+vwnd.10m       & Daily average v component of wind at $10\unit{m}$ above ground level from NARR \\
+rhum.2m        & Daily average relative humidity at $2\unit{m}$ above ground level from NARR    \\
+apcp           & Daily total precipitation amount from NARR                                     \\
+hpbl           & Daily average height of the planetary boundary layer from NARR                
+\end{tabular}
+\label{table:1}
+\end{table}
 
 \subsection{Model Training and Validation}
 
@@ -337,10 +369,6 @@ Our approach
 See the
 \href{http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html}{R
 Markdown docs for bibliographies and citations}.
-
-Copernicus supports biblatex and a sample bibliography is in file
-\texttt{sample.bib}. Read \citep{Feynman1963118}, and
-\citep[see][]{Dirac1953888}.
 
 \section{Content section with R code chunks}
 
@@ -665,7 +693,7 @@ Thanks to the rticles contributors!
 %% authors experienced with BibTeX only have to include the following two lines:
 %%
 \bibliographystyle{copernicus}
-\bibliography{sample.bib}
+\bibliography{rapidfire.bib}
 %%
 %% URLs and DOIs can be entered in your BibTeX file as:
 %%

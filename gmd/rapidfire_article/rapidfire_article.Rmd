@@ -24,7 +24,7 @@ affiliation:
     address: Department of Public Health Sciences, MIND Institute, University of California Davis School of Medicine, Davis, CA, United States
 abstract: |
   Urban smoke exposure events from large wildfires have become increasingly common in California and through the western United States. The ability to study the impacts of high smoke aerosol exposures from these events on the public is limited by the availability of high-quailty, spatially-resolved estimates of aerosol concentrations. Methods for the assigning aerosol exposure often employ multiple data sets that are time consuming and expensive to create and difficult to reproduce. As these events have gone from occasional to nearly annual in frequency, the need for rapid smoke exposure assessments has increased. The rapidfire R package provides a suite a tools for developing exposure assigments using data sets that are routinely generated and publicly available within a month of the event. Specifically, rapidfire harvests official air quality monitoring, satellite observations, meteorological modeling, operational predictive smoke modeling, and low-cost sensor networks. A machine learning approach (random forests regression) is used to fuse the different data sets. Using rapidfire, we produced estimates of ground-level 24-hour average PM~2.5~ over for several large wildfire smoke events in California from 2017-2021. These estimates show excellent agreement with independant measures of PM~2.5~ from filter-based networks.   
-bibliography: sample.bib
+bibliography: rapidfire.bib
 running:
   title: rapidfire for Smoke Exposure Modeling
   author: Raffuse et al.
@@ -95,7 +95,7 @@ output:
 Hourly PM~2.5~ observations are available from monitoring stations across the United States via the AirNow network [ref]. Within California, about [number] of monitors were operating during the study period. These permanent monitors are a mixture of federal reference method or federal equivalent method instruments, meaning that they are approved by the US EPA to calculate and report air quality to the public.  
 During wildfires, temporary monitors are also deployed by several government agencies, such as the California Air Resources Board (CARB), and the USDA Forest Service (USFS). These are mostly [what]. Though they are not as accurate as the AirNow monitors [ref], they are deployed in regions where smoke impacts are significant and permanent monitoring is sparse or absent.
 Hourly PM~2.5~ concentrations from both the permanent and temporary monitors were acquired using the `rapidfire::get_airnow_daterange` and `rapidfire::get_airsis_daterange` functions. These wrap the `monitor_subset` function from the `PWFSLSmoke` R package [Mazama Science]. `rapidfire::recast_monitors` was then used to calculate daily 24-hr averages from the hourly data. At least 16 hours are required to produce an average.  
-The daily average data from both the permanent and temporary monitors were combined into a single data set. The spatial extent of the monitors used in this analysis are shown in Figure [xx]. Portions of this monitor data set were withheld for development and validation of the model. PM~2.5~ observations were interpolated to estimate concentrations at locations away from the monitors using ordinary kriging. 30% of the monitoring data were withheld as test data to develop model variograms using `rapidfire::create_airnow_variograms`. 
+The daily average data from both the permanent and temporary monitors were combined into a single data set. The spatial extent of the monitors used in this analysis are shown in Figure [xx]. Portions of this monitor data set were withheld for development and validation of the model. PM~2.5~ observations were log-transformed and interpolated to estimate concentrations at locations away from the monitors using ordinary kriging. 30% of the monitoring data were withheld as test data to develop model variograms using `rapidfire::create_airnow_variograms`. 
 
 -- figure of Permanent and Temporary monitors.
 
@@ -120,15 +120,36 @@ rapidfire takes advantage of the AirSensor R package [Mazama Science] for discov
 SRD=\frac{A-B}{\sqrt{2}}/\frac{A+B}{2}.  
 \end{equation}
 
-In addition to the channel comparison, we also employed a spatial test to remove sensors that were significantly different from their neighbors. rapidfire::purpleair_clean_spatial_outliers removes any sensors that are more that two standard deviations away from the median of all sites within $10\unit {km}$. PurpleAir estimates used in data fusion were interpolated using ordinary kriging.
+In addition to the channel comparison, we also employed a spatial test to remove sensors that were significantly different from their neighbors. rapidfire::purpleair_clean_spatial_outliers removes any sensors that are more that two standard deviations away from the median of all sites within $10\unit {km}$. PurpleAir estimates used in data fusion were log-transformed and then interpolated using ordinary kriging.
 
 ### Meteorology  
 
-Meteorological conditions can help explain the relationships between our inputs and observed PM~2.5~. For example, the PurpleAir sensor is sensitive to relative humidity. AOD is sensitive to humidty and planetary boundary layer height. Following Zou et al. (2019), We included several meteorological variables in our model, including temperature, winds, humidity, boundary layer height, and rainfall. These variables were acquired from the North American Regional Renanalysis (NARR) data set [ref].
+Meteorological conditions can help explain the relationships between our inputs and observed PM~2.5~. For example, the PurpleAir sensor is sensitive to relative humidity. AOD is sensitive to humidty and planetary boundary layer height. Following Zou et al. (2019), We included several meteorological variables in our model, including temperature, winds, humidity, boundary layer height, and rainfall. These variables were acquired from the North American Regional Reanalysis (NARR) data set [ref].
 
 ## Data Fusion
 
-Our approach
+We developed event specific models using random forests regression (RF). RF is a technique that uses a large number of randomly generated regression trees [@Breiman2001]. Each tree is constructed using a random subset of the training data and each node uses a random subset of the potential predictive variables. New values are estimated as the mean prediction of the individual trees. For each RF run, 500 trees were grown. A single tuning parameter, the number of variables selected at each node, was varied between 2 and 5. The model was trained using 10-fold cross-validation. Internally, rapidfire::develop_model uses the randomForest R package.  
+For the final model, 10 predictor variables were used (Table \ref{table:1}). PM~2.5~ from the monitors was used as both a predictor and a target variable. A random subset of 30% of the monitoring data was withheld for model validation.
+
+\begin{table}[h]
+\caption{Predictor variables used in the rapidfire RF model.}
+\begin{tabular}{ll}
+Variable       & Description                                                                    \\ \hline
+PM25\_log\_ANK & Log-transformed, interpolated $PM_{2.5}$ from permanent and temporary monitors \\
+PM25\_log\_PAK & Log-transformed, interpolated $PM_{2.5}$ estimates from PurpleAir sensors      \\
+PM25\_bluesky  & Daily average ground-level $PM_{2.5}$ predictions from BlueSky smoke model     \\
+MAIAC\_AOD     & Gap-filled  daily AOD from MAIAC                                               \\
+air.2m         & Daily average ambient temperature at $2\unit{m}$ above ground level from NARR  \\
+uwnd.10m       & Daily average u component of wind at $10\unit{m}$ above ground level from NARR \\
+vwnd.10m       & Daily average v component of wind at $10\unit{m}$ above ground level from NARR \\
+rhum.2m        & Daily average relative humidity at $2\unit{m}$ above ground level from NARR    \\
+apcp           & Daily total precipitation amount from NARR                                     \\
+hpbl           & Daily average height of the planetary boundary layer from NARR                
+\end{tabular}
+\label{table:1}
+\end{table}
+
+
 
 ## Model Training and Validation
 
@@ -157,8 +178,8 @@ Our approach
 
 See the [R Markdown docs for bibliographies and citations](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html).
 
-Copernicus supports biblatex and a sample bibliography is in file `sample.bib`.
-Read [@Feynman1963118], and [see @Dirac1953888].
+<!-- Copernicus supports biblatex and a sample bibliography is in file `sample.bib`. -->
+<!-- Read [@Feynman1963118], and [see @Dirac1953888]. -->
 
 # Content section with R code chunks
 
