@@ -1,0 +1,357 @@
+---
+title: A model for rapid wildfire smoke exposure estimates using routinely-available data
+journal: "gmd"
+author:
+  - given_name: Sean
+    surname: Raffuse
+    affiliation: "1"
+    email: sraffuse@ucdavis.edu
+    corresponding: true
+  - given_name: Susan
+    surname: O'Neill
+    affiliation: 2
+    email: susan.oneill1@usda.gov
+  - given_name: Rebecca
+    surname: Schmidt
+    affiliation: 3
+    email: rjschmidt@ucdavis.edu
+affiliation:
+  - code: 1
+    address: Air Quality Research Center, University of California Davis, Davis, CA, United States
+  - code: 2
+    address: Pacific Northwest Research Station, USDA Forest Service, Seattle, WA, United States
+  - code: 3
+    address: Department of Public Health Sciences, MIND Institute, University of California Davis School of Medicine, Davis, CA, United States
+abstract: |
+  Urban smoke exposure events from large wildfires have become increasingly common in California and through the western United States. The ability to study the impacts of high smoke aerosol exposures from these events on the public is limited by the availability of high-quailty, spatially-resolved estimates of aerosol concentrations. Methods for the assigning aerosol exposure often employ multiple data sets that are time consuming and expensive to create and difficult to reproduce. As these events have gone from occasional to nearly annual in frequency, the need for rapid smoke exposure assessments has increased. The rapidfire R package provides a suite a tools for developing exposure assigments using data sets that are routinely generated and publicly available within a month of the event. Specifically, rapidfire harvests official air quality monitoring, satellite observations, meteorological modeling, operational predictive smoke modeling, and low-cost sensor networks. A machine learning approach (random forests regression) is used to fuse the different data sets. Using rapidfire, we produced estimates of ground-level 24-hour average PM~2.5~ over for several large wildfire smoke events in California from 2017-2021. These estimates show excellent agreement with independant measures of PM~2.5~ from filter-based networks.   
+bibliography: sample.bib
+running:
+  title: rapidfire for Smoke Exposure Modeling
+  author: Raffuse et al.
+# This section is mandatory even if you declare that no competing interests are present.
+competinginterests: |
+  The authors declare no competing interests.
+# See https://publications.copernicus.org/for_authors/licence_and_copyright.html, normally used for transferring the copyright, if needed. 
+# Note: additional copyright statements for affiliated software or data need to be placed in the data availability section. 
+copyrightstatement: |
+  The author's copyright for this publication is transferred to institution/company. 
+### The following commands are for the statements about the availability of data sets and/or software code corresponding to the manuscript.
+### It is strongly recommended to make use of these sections in case data sets and/or software code have been part of your research the article is based on.
+### Note: unless stated otherwise, software and data affiliated with the manuscript are assumed to be published under the same licence as the article (currently Creative Commons 4.0)
+availability:
+  #code: |
+  #  use this to add a statement when having only software code available
+  #data: |
+  #  use this to add a statement when having only data sets available
+  codedata: |
+    use this to add a statement when having data sets and software code available
+  sample: |
+    use this section when having geoscientific samples available
+videosupplement: |
+  use this section when having video supplements available
+authorcontribution: |
+  Daniel wrote the package. Josiah thought about poterry. Markus filled in for a second author.
+disclaimer: |
+  We like Copernicus.
+acknowledgements: |
+  Thanks to the rticles contributors!
+appendix: |
+  \section{Figures and tables in appendices}
+  Regarding figures and tables in appendices, the following two options are possible depending on your general handling of figures and tables in the manuscript environment:
+  \subsection{Option 1}
+  If you sorted all figures and tables into the sections of the text, please also sort the appendix figures and appendix tables into the respective appendix sections.
+  They will be correctly named automatically.
+  \subsection{Option 2}
+  If you put all figures after the reference list, please insert appendix tables and figures after the normal tables and figures.
+  
+  To rename them correctly to A1, A2, etc., please add the following commands in front of them:
+  `\appendixfigures` needs to be added in front of appendix figures
+  `\appendixtables` needs to be added in front of appendix tables
+  
+  Please add `\clearpage` between each table and/or figure. Further guidelines on figures and tables can be found below.
+output:
+  rticles::copernicus_article: 
+    highlight: NULL
+    keep_tex: true
+  bookdown::pdf_book:
+    base_format: rticles::copernicus_article # for using bookdown features like \@ref()
+---
+
+\introduction[Introduction]
+
+ - California smoke impact on the rise (and throughout the west)
+ - Expected to continue
+ - Health impact of wildfire smoke and need for research
+ - Need for rapid, inexpensive exposure modeling (increasing frequency and intensity of events)
+ - pedigree (NASA HAQAST and Yufei's work)
+ - growth of low-cost sensor networks and their fidelity for fires
+ - Compared with other methods (land use regression), this may be more suitable for fires because of the regional nature of the source
+ 
+# Methods  
+
+## Input Data Sets
+
+### Official and Temporary Monitoring  
+Hourly PM~2.5~ observations are available from monitoring stations across the United States via the AirNow network [ref]. Within California, about [number] of monitors were operating during the study period. These permanent monitors are a mixture of federal reference method or federal equivalent method instruments, meaning that they are approved by the US EPA to calculate and report air quality to the public.  
+During wildfires, temporary monitors are also deployed by several government agencies, such as the California Air Resources Board (CARB), and the USDA Forest Service (USFS). These are mostly [what]. Though they are not as accurate as the AirNow monitors [ref], they are deployed in regions where smoke impacts are significant and permanent monitoring is sparse or absent.
+Hourly PM~2.5~ concentrations from both the permanent and temporary monitors were acquired using the `rapidfire::get_airnow_daterange` and `rapidfire::get_airsis_daterange` functions. These wrap the `monitor_subset` function from the `PWFSLSmoke` R package [Mazama Science]. `rapidfire::recast_monitors` was then used to calculate daily 24-hr averages from the hourly data. At least 16 hours are required to produce an average.  
+The daily average data from both the permanent and temporary monitors were combined into a single data set. The spatial extent of the monitors used in this analysis are shown in Figure [xx]. Portions of this monitor data set were withheld for development and validation of the model. PM~2.5~ observations were interpolated to estimate concentrations at locations away from the monitors using ordinary kriging. 30% of the monitoring data were withheld as test data to develop model variograms using `rapidfire::create_airnow_variograms`. 
+
+-- figure of Permanent and Temporary monitors.
+
+### Smoke Modeling
+
+Air quality models provide ground-level estimates of PM~2.5~ on an output grid. We processed daily average values acquired from the BlueSky Daily Run Viewer (Websky), developed by the USFS AirFire Team. Depending on the event year, different model runs were available. Modeling from Websky was chosen because it is available operationally, is high spatial resolution, and is focused specifically on modeling smoke aerosols from wildland fires. [Susan, can you help me here to describe which models were used and their references?] 
+On some days, the model did not run successfully. For those days, data were backfilled by using the second our third day of a previous day's 72-hr model run.
+
+### Satellite Aerosol Optical Depth
+
+Satellite aerosol optical depth (AOD) is a measure of the total columnar aerosol light extinction from the satellte sensor to the ground. AOD is indirectly related to PM~2.5~, with the relationship depending on aerosol type, humidity, and aerosol vertical profile [ref]. We used AOD from the Multi-Angle Implementation of Atmospheric Correction (MAIAC) project [ref]. MAIAC is an algorithm that uses time series analysis and additional processing to improve aerosol retrievals, atmospheric correction, and, importantly, cloud detection from the MODerate-resolution Imaging Spectroradiometers (MODIS) onboard NASA's Terra and Aqua satellites [Lyapustin et al, 2011a,b; 2021; 2018]. Past work has shown that thick smoke is often mistaken for clouds in the standard MODIS algorithms [ref], which hampers their use in wildfire conditions.  
+The `rapidfire::maiac_download` function can be used to acquire the 1-km daily atmosphere product (MCD19A2) which contains AOD. Clouds prevent the retrieval of AOD, and there are sometimes clouds present even in the hot, dry conditions during California wildfires. The data fusion algorithm requires a complete data set, so a placeholder value must be used to gap-fill in locations under clouds. Previous work has used model-simuluated AOD, along with meteorological variables in a data fusion approach to gap-fill satellite-observed AOD [Zou 2019]. For this work, where clouds cover less of the domain, we took a simpler approach. Missing AOD values were filled using a three-stage focal average, available in `rapidfire::maiac_fill_gaps_complete`. [more to describe the figure]
+
+-- figure illustrating the gap filling approach
+
+### Low-cost Sensors
+
+
+
+### Meteorology
+
+## Data Fusion
+
+## Model Training and Validation
+
+### IMPROVE, CSN, CA FRM
+
+# Code?
+
+# Results
+
+## Model development plots? (Test vs. Training)
+## Comparison to filter measurements
+### crossplots
+### time series?
+## Maps
+
+## Compare to other method (interpolation alone)
+
+# Discussion
+
+- Importance plots
+- application for health studies
+- advantages over existing methods
+- limitations
+
+# Content section with citations
+
+See the [R Markdown docs for bibliographies and citations](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html).
+
+Copernicus supports biblatex and a sample bibliography is in file `sample.bib`.
+Read [@Feynman1963118], and [see @Dirac1953888].
+
+# Content section with R code chunks
+
+```{r, echo = FALSE}
+sum <- 1 + 41
+```
+
+You should always use `echo = FALSE` on R Markdown code blocks as they add formatting and styling not desired by Copernicus.
+The hidden workflow results in `r sum`.
+
+You can add verbatim code snippets without extra styles by using ` ``` ` without additional instructions.
+
+```
+sum <- 1 + 41
+```
+
+# Content section with list
+
+If you want to insert a list, you must
+
+- leave
+
+- empty lines
+
+- between each list item
+
+because the `\tightlist` format used by R Markdown is not supported in the Copernicus template. Example:
+
+```
+- leave
+
+- empty lines
+
+- between each list item
+```
+
+# Examples from the official template
+
+## FIGURES
+
+When figures and tables are placed at the end of the MS (article in one-column style), please add \clearpage between bibliography and first table and/or figure as well as between each table and/or figure.
+
+### ONE-COLUMN FIGURES
+
+Include a 12cm width figure of Nikolaus Copernicus from [Wikipedia](https://en.wikipedia.org/wiki/File:Nikolaus_Kopernikus.jpg) with caption using R Markdown.
+
+```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "one column figure"}
+knitr::include_graphics("Nikolaus_Kopernikus.jpg")
+```
+
+### TWO-COLUMN FIGURES
+
+You can also include a larger figure.
+
+```{r, out.width = "12cm", echo = FALSE, fig.cap = "two column figure"}
+knitr::include_graphics("Nikolaus_Kopernikus.jpg")
+```
+
+## TABLES
+
+You can ad \LaTeX table in an R Markdown document to meet the template requirements.
+
+### ONE-COLUMN TABLE
+
+\begin{table}[t]
+\caption{TEXT}
+\begin{tabular}{l c r}
+\tophline
+
+a & b & c \\
+\middlehline
+1 & 2 & 3 \\
+
+\bottomhline
+\end{tabular}
+\belowtable{Table Footnotes}
+\end{table}
+
+### TWO-COLUMN TABLE
+
+\begin{table*}[t]
+\caption{TEXT}
+\begin{tabular}{l c r}
+\tophline
+
+a & b & c \\
+\middlehline
+1 & 2 & 3 \\
+
+\bottomhline
+\end{tabular}
+\belowtable{Table footnotes}
+\end{table*}
+
+## MATHEMATICAL EXPRESSIONS
+
+All papers typeset by Copernicus Publications follow the math typesetting regulations given by the IUPAC Green Book (IUPAC: Quantities, Units and Symbols in Physical Chemistry, 2nd Edn., Blackwell Science, available at: http://old.iupac.org/publications/books/gbook/green_book_2ed.pdf, 1993).
+
+Physical quantities/variables are typeset in italic font (t for time, T for Temperature)
+
+Indices which are not defined are typeset in italic font (x, y, z, a, b, c)
+
+Items/objects which are defined are typeset in roman font (Car A, Car B)
+
+Descriptions/specifications which are defined by itself are typeset in roman font (abs, rel, ref, tot, net, ice)
+
+Abbreviations from 2 letters are typeset in roman font (RH, LAI)
+
+Vectors are identified in bold italic font using \vec{x}
+
+Matrices are identified in bold roman font
+
+Multiplication signs are typeset using the LaTeX commands `\times` (for vector products, grids, and exponential notations) or `\cdot`
+
+The character * should not be applied as mutliplication sign
+
+## EQUATIONS
+
+### Single-row equation
+
+Unnumbered equations (i.e. using `$$` and getting inline preview in RStudio) are not supported by Copernicus.
+
+\begin{equation}
+1 \times 1 \cdot 1 = 42
+\end{equation}
+
+\begin{equation}
+A = \pi r^2
+\end{equation}
+
+\begin{equation}
+x=\frac{2b\pm\sqrt{b^{2}-4ac}}{2c}.  
+\end{equation}
+
+### Multiline equation
+
+\begin{align}
+& 3 + 5 = 8\\
+& 3 + 5 = 8\\
+& 3 + 5 = 8
+\end{align}
+
+## MATRICES
+
+$$
+\begin{matrix}
+x & y & z\\
+x & y & z\\
+x & y & z\\
+\end{matrix}
+$$
+
+## ALGORITHM/PROGRAMMING CODE
+
+If you want to use algorithms, you need to make sure yourself that the \LaTeX packages `algorithms` and `algorithmicx` are installed so that `algorithm.sty` respectively `algorithmic.sty` can be loaded by the Copernicus template. Both need to be available through your preferred \LaTeX{} distribution. With TinyTeX (or TeX Live), you can do so by running `tinytex::tlmgr_install(c("algorithms", "algorithmicx"))`
+
+```{r, echo = FALSE, eval = tinytex::is_tinytex()}
+tinytex::tlmgr_install(c("algorithms", "algorithmicx"))
+```
+
+Copernicus staff will no accept any additional packages from your LaTeX source code, so please stick to these two acceptable packages. They are needed to use the example below
+
+\begin{algorithm}
+\caption{Algorithm Caption}
+\label{a1}
+\begin{algorithmic}
+\STATE $i\gets 10$
+\IF {$i\geq 5$} 
+        \STATE $i\gets i-1$
+\ELSE
+        \IF {$i\leq 3$}
+                \STATE $i\gets i+2$
+        \ENDIF
+\ENDIF
+\end{algorithmic}
+\end{algorithm}
+
+## CHEMICAL FORMULAS AND REACTIONS
+
+For formulas embedded in the text, please use `\chem{}`, e.g. \chem{A \rightarrow B}.
+
+The reaction environment creates labels including the letter R, i.e. (R1), (R2), etc.
+
+- `\rightarrow` should be used for normal (one-way) chemical reactions
+
+- `\rightleftharpoons` should be used for equilibria
+
+- `\leftrightarrow` should be used for resonance structures
+
+\begin{reaction}
+A \rightarrow B \\
+\end{reaction}
+\begin{reaction}
+Coper \rightleftharpoons nicus \\
+\end{reaction}
+\begin{reaction}
+Publi \leftrightarrow cations
+\end{reaction}
+
+## PHYSICAL UNITS
+
+Please use `\unit{}` (allows to save the math/`$` environment) and apply the exponential notation, for example \( 3.14\,\unit{km\,h^{-1}} \) (using LaTeX mode: `\( 3.14\,\unit{...} \)`) or \unit{0.872\,m\,s^{-1}} (using only `\unit{0.872\,m\,s^{-1}}`).
+
+\conclusions[Conclusions]
+
+The conclusion goes here.
+You can modify the section name with  `\conclusions[modified heading if necessary]`.
