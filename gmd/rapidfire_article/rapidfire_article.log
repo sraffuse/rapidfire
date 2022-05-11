@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7300 64-bit) (preloaded format=pdflatex 2020.2.28)  11 MAY 2022 10:44
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7300 64-bit) (preloaded format=pdflatex 2020.2.28)  11 MAY 2022 13:47
 entering extended mode
 **./rapidfire_article.tex
 (rapidfire_article.tex
@@ -2977,119 +2977,122 @@ LaTeX Font Info:    Font shape `T1/phv/m/n' will be
 [1
 
 {C:/Users/sraffuse/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
-LaTeX Font Info:    Trying to load font information for T1+pcr on input line 18
-8.
+LaTeX Font Info:    Trying to load font information for T1+pcr on input line 19
+3.
 (C:\Users\sraffuse\AppData\Roaming\MiKTeX\2.9\tex/latex/psnfss\t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
-) [2]
+)
+Overfull \hbox (89.83275pt too wide) in paragraph at lines 174--208
+\T1/ptm/m/n/10 Hourly PM$[]$ con-cen-tra-tions from both the per-ma-nent and te
+m-po-rary mon-i-tors were ac-quired us-ing the \T1/pcr/m/n/10 rapidfire::get_ai
+rnow_daterange
+ []
+
+
+Overfull \hbox (20.62477pt too wide) in paragraph at lines 174--208
+\T1/ptm/m/n/10 and \T1/pcr/m/n/10 rapidfire::get_airsis_daterange \T1/ptm/m/n/1
+0 func-tions. These wrap the \T1/pcr/m/n/10 monitor_subset \T1/ptm/m/n/10 func-
+tion from the \T1/pcr/m/n/10 PWFSLSmoke
+ []
+
+<./Figures/MonitorsGMD.png, id=15, 236.082pt x 284.5029pt>
+File: ./Figures/MonitorsGMD.png Graphic file (type png)
+<use ./Figures/MonitorsGMD.png>
+Package pdftex.def Info: ./Figures/MonitorsGMD.png  used on input line 210.
+(pdftex.def)             Requested size: 236.15796pt x 284.5977pt.
+[2] [3 <./Figures/MonitorsGMD.png>]
 LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 2
-70.
+77.
 (C:\Users\sraffuse\AppData\Roaming\MiKTeX\2.9\tex/latex/psnfss\ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-) [3]
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-<./Figures/MultiEventValidationGMD.png, id=40, 236.082pt x 198.9834pt>
+) [4]
+<./Figures/MultiEventValidationGMD.png, id=50, 236.082pt x 198.9834pt>
 File: ./Figures/MultiEventValidationGMD.png Graphic file (type png)
 <use ./Figures/MultiEventValidationGMD.png>
 Package pdftex.def Info: ./Figures/MultiEventValidationGMD.png  used on input l
-ine 359.
+ine 366.
 (pdftex.def)             Requested size: 236.15796pt x 199.0497pt.
-[4]
-<./Figures/MethodComparisonGMD.png, id=55, 341.3553pt x 227.4096pt>
+<./Figures/MethodComparisonGMD.png, id=51, 341.3553pt x 227.4096pt>
 File: ./Figures/MethodComparisonGMD.png Graphic file (type png)
 <use ./Figures/MethodComparisonGMD.png>
 Package pdftex.def Info: ./Figures/MethodComparisonGMD.png  used on input line 
-363.
+370.
 (pdftex.def)             Requested size: 341.43306pt x 227.46802pt.
-<./Figures/Model_vs_Filters_FiveEpisodesGMD.png, id=56, 236.082pt x 227.4096pt>
+[5] [6 <./Figures/MultiEventValidationGMD.png (PNG copy)> <./Figures/MethodComp
+arisonGMD.png (PNG copy)>]
+<./Figures/Model_vs_Filters_FiveEpisodesGMD.png, id=69, 236.082pt x 227.4096pt>
 
 File: ./Figures/Model_vs_Filters_FiveEpisodesGMD.png Graphic file (type png)
 <use ./Figures/Model_vs_Filters_FiveEpisodesGMD.png>
 Package pdftex.def Info: ./Figures/Model_vs_Filters_FiveEpisodesGMD.png  used o
-n input line 375.
+n input line 382.
 (pdftex.def)             Requested size: 236.15796pt x 227.48537pt.
-<./Figures/ImpTimeSeries.png, id=57, 867.24pt x 722.7pt>
+<./Figures/ImpTimeSeries.png, id=70, 867.24pt x 722.7pt>
 File: ./Figures/ImpTimeSeries.png Graphic file (type png)
 <use ./Figures/ImpTimeSeries.png>
-Package pdftex.def Info: ./Figures/ImpTimeSeries.png  used on input line 383.
+Package pdftex.def Info: ./Figures/ImpTimeSeries.png  used on input line 390.
 (pdftex.def)             Requested size: 341.43306pt x 284.53154pt.
-[5 <./Figures/MultiEventValidationGMD.png (PNG copy)>] [6 <./Figures/MethodComp
-arisonGMD.png (PNG copy)> <./Figures/Model_vs_Filters_FiveEpisodesGMD.png>]
-Overfull \vbox (21.40875pt too high) has occurred while \output is active []
-
-[7 <./Figures/ImpTimeSeries.png>]
+[7 <./Figures/Model_vs_Filters_FiveEpisodesGMD.png>]
 Package textcomp Info: Symbol \textasciigrave not provided by
 (textcomp)             font family pcr in TS1 encoding.
-(textcomp)             Default family used instead on input line 417.
+(textcomp)             Default family used instead on input line 424.
 LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 4
-17.
+24.
 ("C:\Program Files\MiKTeX 2.9\tex/latex/base\t1cmtt.fd"
 File: t1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 )
 LaTeX Font Info:    Trying to load font information for TS1+cmtt on input line 
-417.
+424.
 ("C:\Program Files\MiKTeX 2.9\tex/latex/base\ts1cmtt.fd"
 File: ts1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 )
 Package textcomp Info: Symbol \textasciigrave not provided by
 (textcomp)             font family pcr in TS1 encoding.
-(textcomp)             Default family used instead on input line 417.
+(textcomp)             Default family used instead on input line 424.
 Package textcomp Info: Symbol \textasciigrave not provided by
 (textcomp)             font family pcr in TS1 encoding.
-(textcomp)             Default family used instead on input line 417.
-[8]
-<Nikolaus_Kopernikus.jpg, id=99, 206.7725pt x 240.9pt>
-File: Nikolaus_Kopernikus.jpg Graphic file (type jpg)
-<use Nikolaus_Kopernikus.jpg>
-Package pdftex.def Info: Nikolaus_Kopernikus.jpg  used on input line 463.
-(pdftex.def)             Requested size: 236.15796pt x 275.14345pt.
-File: Nikolaus_Kopernikus.jpg Graphic file (type jpg)
-<use Nikolaus_Kopernikus.jpg>
-Package pdftex.def Info: Nikolaus_Kopernikus.jpg  used on input line 471.
-(pdftex.def)             Requested size: 341.43306pt x 397.82806pt.
-
-Overfull \hbox (170.03976pt too wide) in paragraph at lines 513--519
+(textcomp)             Default family used instead on input line 424.
+[8 <./Figures/ImpTimeSeries.png>] [9]
+Overfull \hbox (170.03976pt too wide) in paragraph at lines 465--471
 \T1/ptm/m/n/10 PAC: Quan-ti-ties, Units and Sym-bols in Phys-i-cal Chem-istry, 
 2nd Edn., Black-well Sci-ence, avail-able at: http://old.iupac.org/publications
 /books/gbook/green_book_2ed.pdf,
  []
 
-[9
+[10
 
- <./Nikolaus_Kopernikus.jpg>] [10] [11]
+]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 595.
-[12]pdfTeX warning (ext4): destination with the same identifier (name{equation.
-9.2}) has been already used, duplicate ignored
+put line 547.
+pdfTeX warning (ext4): destination with the same identifier (name{equation.9.2}
+) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.632 \begin{reaction}
+l.584 \begin{reaction}
                       pdfTeX warning (ext4): destination with the same identifi
 er (name{equation.9.3}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.635 \begin{reaction}
-                      
-Overfull \hbox (13.58418pt too wide) in paragraph at lines 650--652
+l.587 \begin{reaction}
+                       [11]
+Overfull \hbox (13.58418pt too wide) in paragraph at lines 602--604
 \T1/ptm/m/n/10 The con-clu-sion goes here. You can mod-ify the sec-tion name wi
 th \T1/pcr/m/n/10 \conclusions[modified heading if necessary]\T1/ptm/m/n/10 . 
  []
 
-[13] (rapidfire_article.bbl [14]) [15]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 754.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 754.
+[12] (rapidfire_article.bbl [13]) [14]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 706.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 706.
 (rapidfire_article.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 754.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 754.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 754.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 706.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 706.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 706.
  ) 
 Here is how much of TeX's memory you used:
- 13945 strings out of 481556
- 194682 string characters out of 2923625
- 512327 words of memory out of 3000000
- 28797 multiletter control sequences out of 15000+200000
+ 13934 strings out of 481556
+ 194507 string characters out of 2923625
+ 511345 words of memory out of 3000000
+ 28795 multiletter control sequences out of 15000+200000
  577761 words of font info for 98 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  47i,11n,47p,335b,730s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -3111,9 +3114,9 @@ fonts/type1/urw/courier/ucrr8a.pfb><C:/Users/sraffuse/AppData/Roaming/MiKTeX/2.
 /2.9/fonts/type1/urw/times/utmb8a.pfb><C:/Users/sraffuse/AppData/Roaming/MiKTeX
 /2.9/fonts/type1/urw/times/utmr8a.pfb><C:/Users/sraffuse/AppData/Roaming/MiKTeX
 /2.9/fonts/type1/urw/times/utmri8a.pfb>
-Output written on rapidfire_article.pdf (15 pages, 452586 bytes).
+Output written on rapidfire_article.pdf (14 pages, 641791 bytes).
 PDF statistics:
- 259 PDF objects out of 1000 (max. 8388607)
- 97 named destinations out of 1000 (max. 500000)
+ 245 PDF objects out of 1000 (max. 8388607)
+ 88 named destinations out of 1000 (max. 500000)
  26 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -93,11 +93,14 @@ output:
 
 ### Official and Temporary Monitoring  
 Hourly PM~2.5~ observations are available from monitoring stations across the United States via the AirNow network [ref]. Within California, about [number] of monitors were operating during the study period. These permanent monitors are a mixture of federal reference method or federal equivalent method instruments, meaning that they are approved by the US EPA to calculate and report air quality to the public.  
-During wildfires, temporary monitors are also deployed by several government agencies, such as the California Air Resources Board (CARB), and the USDA Forest Service (USFS). These are mostly [what]. Though they are not as accurate as the AirNow monitors [ref], they are deployed in regions where smoke impacts are significant and permanent monitoring is sparse or absent.
+During wildfires, temporary monitors are also deployed by several government agencies, such as the California Air Resources Board (CARB), and the USDA Forest Service (USFS). These are mostly [what]. Though they are not as accurate as the AirNow monitors [ref], they are deployed in regions where smoke impacts are significant and permanent monitoring is sparse or absent. The locations of permanent and temporary monitors as of September 1, 2021 is shown in Figure \@ref(fig:monitors). The permanent monitors are concentrated in the coastal and valley regions, while temporary monitors are focused in areas of complex terrain where most wildfires are located.  
 Hourly PM~2.5~ concentrations from both the permanent and temporary monitors were acquired using the `rapidfire::get_airnow_daterange` and `rapidfire::get_airsis_daterange` functions. These wrap the `monitor_subset` function from the `PWFSLSmoke` R package [Mazama Science]. `rapidfire::recast_monitors` was then used to calculate daily 24-hr averages from the hourly data. At least 16 hours are required to produce an average.  
 The daily average data from both the permanent and temporary monitors were combined into a single data set. The spatial extent of the monitors used in this analysis are shown in Figure [xx]. Portions of this monitor data set were withheld for development and validation of the model. PM~2.5~ observations were log-transformed and interpolated to estimate concentrations at locations away from the monitors using ordinary kriging. 30% of the monitoring data were withheld as test data to develop model variograms using `rapidfire::create_airnow_variograms`. 
 
--- figure of Permanent and Temporary monitors.
+<!-- plot created in ./scripts/gmd_method_figures.R -->
+```{r monitors, out.width = "8.3cm", echo = FALSE, fig.cap = "Map of permanent and temporary California monitor locations as of September 1, 2021."}
+knitr::include_graphics("./Figures/MonitorsGMD.png")
+```
 
 ### Smoke Modeling
 
@@ -262,57 +265,6 @@ because the `\tightlist` format used by R Markdown is not supported in the Coper
 
 When figures and tables are placed at the end of the MS (article in one-column style), please add \clearpage between bibliography and first table and/or figure as well as between each table and/or figure.
 
-### ONE-COLUMN FIGURES
-
-Include a 12cm width figure of Nikolaus Copernicus from [Wikipedia](https://en.wikipedia.org/wiki/File:Nikolaus_Kopernikus.jpg) with caption using R Markdown.
-
-```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "one column figure"}
-knitr::include_graphics("Nikolaus_Kopernikus.jpg")
-```
-
-### TWO-COLUMN FIGURES
-
-You can also include a larger figure.
-
-```{r, out.width = "12cm", echo = FALSE, fig.cap = "two column figure"}
-knitr::include_graphics("Nikolaus_Kopernikus.jpg")
-```
-
-## TABLES
-
-You can ad \LaTeX table in an R Markdown document to meet the template requirements.
-
-### ONE-COLUMN TABLE
-
-\begin{table}[t]
-\caption{TEXT}
-\begin{tabular}{l c r}
-\tophline
-
-a & b & c \\
-\middlehline
-1 & 2 & 3 \\
-
-\bottomhline
-\end{tabular}
-\belowtable{Table Footnotes}
-\end{table}
-
-### TWO-COLUMN TABLE
-
-\begin{table*}[t]
-\caption{TEXT}
-\begin{tabular}{l c r}
-\tophline
-
-a & b & c \\
-\middlehline
-1 & 2 & 3 \\
-
-\bottomhline
-\end{tabular}
-\belowtable{Table footnotes}
-\end{table*}
 
 ## MATHEMATICAL EXPRESSIONS
 
