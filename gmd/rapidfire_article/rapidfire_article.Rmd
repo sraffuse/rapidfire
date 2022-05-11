@@ -149,7 +149,7 @@ hpbl           & Daily average height of the planetary boundary layer from NARR
 \label{table:1}
 \end{table}
 
-We developed models for five large wildfire smoke events from 2017-2021 in Northern California (Table \ref{table:2}). The data 
+We developed models for five large wildfire smoke events from 2017-2021 in Northern California (Table \ref{table:2}). 
 
 \begin{table}[h]
 \caption{Modeled time periods and major Northern California wildfires}
@@ -164,23 +164,50 @@ Year & Time Period              & Major Fires                                   
 \label{table:2}
 \end{table}
 
-## Model Training and Validation
+## Model Validation  
+
+We validated the model against two data sets of PM~2.5~ observations, 1) the permanent and temporary monitors described above, and 2) 24-hr filter-based measurements from the IMPROVE and CSN networks.
+
+### FRM/FEM Monitors (what should I call these?)
+
+<!-- plot created in ./scripts/validate_periods.R -->
+```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "Model cross-validation against measured PM~2.5~ at monitors."}
+knitr::include_graphics("./Figures/MultiEventValidationGMD.png")
+```
+
+<!-- plot created in ./scripts/validate_periods.R -->
+```{r, out.width = "12cm", echo = FALSE, fig.cap = "Model comparison against measured PM~2.5~ from the IMPROVE and CSN filter networks."}
+knitr::include_graphics("./Figures/MethodComparisonGMD.png")
+```
 
 ### IMPROVE, CSN, CA FRM
 
-# Code?
+
 
 # Results
 
 ## Model development plots? (Test vs. Training)
 ## Comparison to filter measurements
+
+<!-- plot created in ./scripts/assess_prediction_vs_filters.R -->
+```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "Model comparison against measured PM~2.5 at IMPROVE and CSN monitors"}
+    knitr::include_graphics("./Figures/Model_vs_Filters_FiveEpisodesGMD.png")
+```
+
+
 ### crossplots
 ### time series?
+
+```{r, out.width = "12cm", echo = FALSE, fig.cap = "Placeholder until I can make something that works for the size"}
+    knitr::include_graphics("./Figures/ImpTimeSeries.png")
+```
+
+
 ## Maps
 
-## Compare to other method (interpolation alone)
-
 # Discussion
+
+# Code?
 
 - Importance plots
 - application for health studies
