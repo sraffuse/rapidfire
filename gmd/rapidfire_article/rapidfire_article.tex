@@ -184,10 +184,15 @@ and the USDA Forest Service (USFS). These are mostly {[}what{]}. Though
 they are not as accurate as the AirNow monitors {[}ref{]}, they are
 deployed in regions where smoke impacts are significant and permanent
 monitoring is sparse or absent. The locations of permanent and temporary
-monitors as of September 1, 2021 is shown in Figure @ref(fig:monitors).
+monitors as of September 1, 2021 is shown in Figure \ref{fig:monitors}.
 The permanent monitors are concentrated in the coastal and valley
 regions, while temporary monitors are focused in areas of complex
-terrain where most wildfires are located.\\
+terrain where most wildfires are located.
+
+\begin{figure}[h]
+\includegraphics[width=8.3cm]{./Figures/MonitorsGMD} \caption{Map of permanent and temporary California monitor locations as of September 1, 2021.}\label{fig:monitors}
+\end{figure}
+
 Hourly PM\textsubscript{2.5} concentrations from both the permanent and
 temporary monitors were acquired using the
 \texttt{rapidfire::get\_airnow\_daterange} and
@@ -205,10 +210,6 @@ interpolated to estimate concentrations at locations away from the
 monitors using ordinary kriging. 30\% of the monitoring data were
 withheld as test data to develop model variograms using
 \texttt{rapidfire::create\_airnow\_variograms}.
-
-\begin{figure}
-\includegraphics[width=8.3cm]{./Figures/MonitorsGMD} \caption{Map of permanent and temporary California monitor locations as of September 1, 2021.}\label{fig:monitors}
-\end{figure}
 
 \subsubsection{Smoke Modeling}
 
@@ -259,14 +260,21 @@ average, available in \texttt{rapidfire::maiac\_fill\_gaps\_complete}.
 There has been a proliferation of low-cost sensors that estimate
 PM\textsubscript{2.5} deployed by the public across the world in the
 last decade. We used data from the PurpleAir network, which has grown to
-over 6500 outdoor sensors in California as of 2021. While PurpleAir
-estimates of PM\textsubscript{2.5} concentration have been shown to be
-biased, and are dependent on humidity and aerosol type {[}ref{]}, they
-still strongly correlate with PM\textsubscript{2.5} observed at FEM
-monitors and provide invaluable spatial and temporal information that is
-not available with the relatively sparse network of monitors. Because
-these sensors are not quality controlled or validated, and their
-sighting may be suspect, care must be taken when using them in
+over 6500 outdoor sensors in California as of 2021. Figure
+\ref{fig:sensors} shows the locations of PurpleAir sensors reporting
+data on September 1, 2021. Coverage in populated areas is extensive.\\
+
+\begin{figure}[h]
+\includegraphics[width=8.3cm]{./Figures/SensorsGMD} \caption{Map of California PurpleAir outdoor sensor locations as of September 1, 2021.}\label{fig:sensors}
+\end{figure}
+
+While PurpleAir estimates of PM\textsubscript{2.5} concentration have
+been shown to be biased, and are dependent on humidity and aerosol type
+{[}ref{]}, they still strongly correlate with PM\textsubscript{2.5}
+observed at FEM monitors and provide invaluable spatial and temporal
+information that is not available with the relatively sparse network of
+monitors. Because these sensors are not quality controlled or validated,
+and their sighting may be suspect, care must be taken when using them in
 modeling.\\
 rapidfire takes advantage of the AirSensor R package {[}Mazama
 Science{]} for discovering and acquiring PurpleAir sensor data from

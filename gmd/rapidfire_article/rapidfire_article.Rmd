@@ -93,14 +93,16 @@ output:
 
 ### Official and Temporary Monitoring  
 Hourly PM~2.5~ observations are available from monitoring stations across the United States via the AirNow network [ref]. Within California, about [number] of monitors were operating during the study period. These permanent monitors are a mixture of federal reference method or federal equivalent method instruments, meaning that they are approved by the US EPA to calculate and report air quality to the public.  
-During wildfires, temporary monitors are also deployed by several government agencies, such as the California Air Resources Board (CARB), and the USDA Forest Service (USFS). These are mostly [what]. Though they are not as accurate as the AirNow monitors [ref], they are deployed in regions where smoke impacts are significant and permanent monitoring is sparse or absent. The locations of permanent and temporary monitors as of September 1, 2021 is shown in Figure \@ref(fig:monitors). The permanent monitors are concentrated in the coastal and valley regions, while temporary monitors are focused in areas of complex terrain where most wildfires are located.  
+During wildfires, temporary monitors are also deployed by several government agencies, such as the California Air Resources Board (CARB), and the USDA Forest Service (USFS). These are mostly [what]. Though they are not as accurate as the AirNow monitors [ref], they are deployed in regions where smoke impacts are significant and permanent monitoring is sparse or absent. The locations of permanent and temporary monitors as of September 1, 2021 is shown in Figure \ref{fig:monitors}. The permanent monitors are concentrated in the coastal and valley regions, while temporary monitors are focused in areas of complex terrain where most wildfires are located.  
+
+<!-- plot created in ./scripts/gmd_method_figures.R -->
+```{r monitors, out.width = "8.3cm", echo = FALSE, fig.cap = "Map of permanent and temporary California monitor locations as of September 1, 2021.", fig.pos = "h"}
+knitr::include_graphics("./Figures/MonitorsGMD.png")
+```
+
 Hourly PM~2.5~ concentrations from both the permanent and temporary monitors were acquired using the `rapidfire::get_airnow_daterange` and `rapidfire::get_airsis_daterange` functions. These wrap the `monitor_subset` function from the `PWFSLSmoke` R package [Mazama Science]. `rapidfire::recast_monitors` was then used to calculate daily 24-hr averages from the hourly data. At least 16 hours are required to produce an average.  
 The daily average data from both the permanent and temporary monitors were combined into a single data set. The spatial extent of the monitors used in this analysis are shown in Figure [xx]. Portions of this monitor data set were withheld for development and validation of the model. PM~2.5~ observations were log-transformed and interpolated to estimate concentrations at locations away from the monitors using ordinary kriging. 30% of the monitoring data were withheld as test data to develop model variograms using `rapidfire::create_airnow_variograms`. 
 
-<!-- plot created in ./scripts/gmd_method_figures.R -->
-```{r monitors, out.width = "8.3cm", echo = FALSE, fig.cap = "Map of permanent and temporary California monitor locations as of September 1, 2021."}
-knitr::include_graphics("./Figures/MonitorsGMD.png")
-```
 
 ### Smoke Modeling
 
@@ -116,7 +118,12 @@ The `rapidfire::maiac_download` function can be used to acquire the 1-km daily a
 
 ### Low-cost Sensors
 
-There has been a proliferation of low-cost sensors that estimate PM~2.5~ deployed by the public across the world in the last decade. We used data from the PurpleAir network, which has grown to over 6500 outdoor sensors in California as of 2021. While PurpleAir estimates of PM~2.5~ concentration have been shown to be biased, and are dependent on humidity and aerosol type [ref], they still strongly correlate with PM~2.5~ observed at FEM monitors and provide invaluable spatial and temporal information that is not available with the relatively sparse network of monitors. Because these sensors are not quality controlled or validated, and their sighting may be suspect, care must be taken when using them in modeling.  
+There has been a proliferation of low-cost sensors that estimate PM~2.5~ deployed by the public across the world in the last decade. We used data from the PurpleAir network, which has grown to over 6500 outdoor sensors in California as of 2021. Figure \ref{fig:sensors} shows the locations of PurpleAir sensors reporting data on September 1, 2021. Coverage in populated areas is extensive.  
+<!-- plot created in ./scripts/gmd_method_figures.R -->
+```{r sensors, out.width = "8.3cm", echo = FALSE, fig.cap = "Map of California PurpleAir outdoor sensor locations as of September 1, 2021.", fig.pos = "h"}
+knitr::include_graphics("./Figures/SensorsGMD.png")
+```
+While PurpleAir estimates of PM~2.5~ concentration have been shown to be biased, and are dependent on humidity and aerosol type [ref], they still strongly correlate with PM~2.5~ observed at FEM monitors and provide invaluable spatial and temporal information that is not available with the relatively sparse network of monitors. Because these sensors are not quality controlled or validated, and their sighting may be suspect, care must be taken when using them in modeling.  
 rapidfire takes advantage of the AirSensor R package [Mazama Science] for discovering and acquiring PurpleAir sensor data from sensors designated as "outdoor." `rapidfire::create_purpleair_archive` was used to download and preprocess PurpleAir data from two-channel, 1-minute estimates to single 24-hr average values. The two channels were compared and data were only kept if both values were low ($<2\,\unit{\mu g\,m^{-3}}$) or were within a scaled relative difference ($SRD$) between channels $A$ and $B$ of 0.5. A daily mean was calculated for both channels and those were then averaged to produce a final daily estimate for the sensor. 
 
 \begin{equation}
