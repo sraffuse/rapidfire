@@ -250,8 +250,12 @@ used model-simuluated AOD, along with meteorological variables in a data
 fusion approach to gap-fill satellite-observed AOD {[}Zou 2019{]}. For
 this work, where clouds cover less of the domain, we took a simpler
 approach. Missing AOD values were filled using a three-stage focal
-average, available in \texttt{rapidfire::maiac\_fill\_gaps\_complete}.
-{[}more to describe the figure{]}
+average, available in \texttt{rapidfire::maiac\_fill\_gaps\_complete},
+and illustrated in Figure \ref{fig:gapfill}. In the first stage, a focal
+mean of a 5-by-5 pixel square (5 km) is used. In the second state, the
+window is increased to 9-by-9 and to 25-by-25 in the final stage. Any
+values that are still missing after the final stage are filled with the
+median value for the entire scene.
 
 \begin{figure}[h]
 \includegraphics[width=8.3cm]{./Figures/GapFillingGMD} \caption{Illustration of MAIAC AOD gap filling}\label{fig:gapfill}
