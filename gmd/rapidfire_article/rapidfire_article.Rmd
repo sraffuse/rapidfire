@@ -215,6 +215,27 @@ knitr::include_graphics("./Figures/MethodComparisonGMD.png")
     knitr::include_graphics("./Figures/ImpTimeSeries.png")
 ```
 
+These are not quite good enough.
+```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "2017"}
+    knitr::include_graphics("./Figures/Spark2017_GMD.png")
+```
+
+```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "2018"}
+    knitr::include_graphics("./Figures/Spark2018_GMD.png")
+```
+
+```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "2019"}
+    knitr::include_graphics("./Figures/Spark2019_GMD.png")
+```
+
+```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "2020"}
+    knitr::include_graphics("./Figures/Spark2020_GMD.png")
+```
+
+```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "2021"}
+    knitr::include_graphics("./Figures/Spark2021_GMD.png")
+```
+
 
 ## Maps
 
