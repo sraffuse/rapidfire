@@ -219,11 +219,11 @@ values acquired from the BlueSky Daily Run Viewer (Websky), developed by
 the USFS AirFire Team. Depending on the event year, different model runs
 were available. Modeling from Websky was chosen because it is available
 operationally, is high spatial resolution, and is focused specifically
-on modeling smoke aerosols from wildland fires. {[}Susan, can you help
-me here to describe which models were used and their references?{]} On
-some days, the model did not run successfully. For those days, data were
-backfilled by using the second our third day of a previous day's 72-hr
-model run.
+on modeling smoke aerosols from wildland fires; however, other air
+quality modeling could be substituted. {[}Susan, can you help me here to
+describe which models were used and their references?{]} On some days,
+the model did not run successfully. For those days, data were backfilled
+by using the second our third day of a previous day's 72-hr model run.
 
 \subsubsection{Satellite Aerosol Optical Depth}
 
@@ -310,7 +310,7 @@ kriging.
 Meteorological conditions can help explain the relationships between our
 inputs and observed PM\textsubscript{2.5}. For example, the PurpleAir
 sensor is sensitive to relative humidity. AOD is sensitive to humidty
-and planetary boundary layer height. Following Zou et al.~(2019), We
+and planetary boundary layer height. Following Zou et al.~(2019), we
 included several meteorological variables in our model, including
 temperature, winds, humidity, boundary layer height, and rainfall. These
 variables were acquired from the North American Regional Reanalysis
@@ -326,8 +326,8 @@ the potential predictive variables. New values are estimated as the mean
 prediction of the individual trees. For each RF run, 500 trees were
 grown. A single tuning parameter, the number of variables selected at
 each node, was varied between 2 and 5. The model was trained using
-10-fold cross-validation. Internally, rapidfire::develop\_model uses the
-randomForest R package.\\
+10-fold cross-validation. Internally, \texttt{rapidfire::develop\_model}
+uses the randomForest R package.\\
 For the final model, 10 predictor variables were used (Table
 \ref{table:1}). PM\textsubscript{2.5} from the monitors was used as both
 a predictor and a target variable. A random subset of 30\% of the
@@ -351,8 +351,13 @@ hpbl           & Daily average height of the planetary boundary layer from NARR
 \label{table:1}
 \end{table}
 
+\subsection{Model Validation}
+
 We developed models for five large wildfire smoke events from 2017-2021
-in Northern California (Table \ref{table:2}).
+in Northern California (Table \ref{table:2}) and validated the modeling
+against two data sets of PM\textsubscript{2.5} observations, 1) the
+permanent and temporary hourly monitors described above, and 2) 24-hr
+filter-based measurements from the IMPROVE and CSN networks.
 
 \begin{table}[h]
 \caption{Modeled time periods and major Northern California wildfires}
@@ -367,24 +372,66 @@ Year & Time Period              & Major Fires                                   
 \label{table:2}
 \end{table}
 
-\subsection{Model Validation}
+\subsubsection{Hourly Monitors}
 
-We validated the model against two data sets of PM\textsubscript{2.5}
-observations, 1) the permanent and temporary monitors described above,
-and 2) 24-hr filter-based measurements from the IMPROVE and CSN
-networks.
+Model predicted PM\textsubscript{2.5} values were compared against
+withheld measurements from the permanent and temporary monitoring
+networks using rapidfire and three other modeling techniques: 1)
+ordinary kriging (OK) interpolation of AirNow monitors, 2) OK
+interpolation of PurpleAir sensors, and 3) multiple linear regression
+(MLR) using the same inputs as those used for the rapidfire modeling.
+Comparative model performance metrics are presented in Table
+\ref{table:3}. For these wildfire events, rapidfire provides good
+correlation with low error and bias, offering advantages over classical
+MLR or interpolation of the ground monitors alone. Graphical results of
+the validation (Figure \ref{fig:methods}) show the tighter distribution
+around the 1:1 line for the rapidfire modeling, especially for higher
+concentrations.
 
-\subsubsection{FRM/FEM Monitors (what should I call these?)}
+\begin{table}[h]
+\caption{Performance metrics for four modeling methods}
+\begin{tabular}{lrrrrrr}
+Model     & R\textsuperscript{2}    & RMSE    & Median Bias    & Normalized Bias   & Median Error   & Normalized Error    \\ \hline
+rapidfire & 0.74  & 21.5    & 0.083   & 0.76              & 2.13    & 18.6 \\
+MLR       & 0.68  & 23.8    & 0.056   & 0.49              & 2.59    & 22.6  \\
+AirNow OK & 0.63  & 25.7    & 0.133   & 1.22              & 2.63    & 23.0  \\
+PurpleAir OK & 0.38 & 33.3  & -0.095  & -1.04             & 3.75    & 32.8
+\end{tabular}
+\label{table:3}
+\end{table}
 
 \begin{figure}
-\includegraphics[width=8.3cm]{./Figures/MultiEventValidationGMD} \caption{Model cross-validation against measured PM~2.5~ at monitors.}\label{fig:unnamed-chunk-1}
-\end{figure}
-
-\begin{figure}
-\includegraphics[width=12cm]{./Figures/MethodComparisonGMD} \caption{Model comparison against measured PM~2.5~ from the IMPROVE and CSN filter networks.}\label{fig:unnamed-chunk-2}
+\includegraphics[width=12cm]{./Figures/MethodComparisonGMD} \caption{Model comparison against measured PM~2.5~ from the IMPROVE and CSN filter networks.}\label{fig:methods}
 \end{figure}
 
 \subsubsection{IMPROVE, CSN, CA FRM}
+
+rapidfire results were also compared with available 24-hr integrated
+filter-based observations from the IMPROVE and CSN networks. They
+represent a challenging test of the method as they are 100\% independent
+of the model inputs, accurate estimates of PM\textsubscript{2.5}
+concentration, and, for IMPROVE especially, located far from other
+monitors in remote locations with complex terrain. Downsides of using
+these data are that the networks are more sparse and the days with the
+highest concentrations are often not available as the IMPROVE sampler
+can clog in very heavy smoke situations. Paired results are plotted in
+Figure \ref{fig:filters}, showing good agreement across the
+concentration range with a few outliers at IMPROVE sites. Model
+performance metrics for the filter-based comparison are shown in Table
+\ref{table:4}. As expected, the CSN sites are better predicted, as they
+are typically located in urban areas with nearby AirNow monitors and
+PurpleAir sensors.
+
+\begin{table}[h]
+\caption{Performance metrics for rapidfire at IMPROVE sites, CSN sites, and IMPROVE and CSN sites combined}
+\begin{tabular}{lrrrrrr}
+Network     & R\textsuperscript{2}    & RMSE    & Median Bias    & Normalized Bias   & Median Error   & Normalized Error    \\ \hline
+CSN     & 0.82  & 5.18    & 0.42   & 3.93  & 1.96 & 15.3  \\
+IMPROVE & 0.76  & 8.47    & 2.48   & 46.5  & 3.19 & 49.6   \\
+Both    & 0.77  & 7.52    & 1.84   & 22.4  & 2.70 & 29.9
+\end{tabular}
+\label{table:4}
+\end{table}
 
 \section{Results}
 
@@ -393,7 +440,7 @@ networks.
 \subsection{Comparison to filter measurements}
 
 \begin{figure}
-\includegraphics[width=8.3cm]{./Figures/Model_vs_Filters_FiveEpisodesGMD} \caption{Model comparison against measured PM~2.5 at IMPROVE and CSN monitors}\label{fig:unnamed-chunk-3}
+\includegraphics[width=8.3cm]{./Figures/Model_vs_Filters_FiveEpisodesGMD} \caption{Model comparison against measured PM~2.5 at IMPROVE and CSN monitors}\label{fig:filters}
 \end{figure}
 
 \subsubsection{crossplots}
@@ -401,29 +448,29 @@ networks.
 \subsubsection{time series?}
 
 \begin{figure}
-\includegraphics[width=12cm]{./Figures/ImpTimeSeries} \caption{Placeholder until I can make something that works for the size}\label{fig:unnamed-chunk-4}
+\includegraphics[width=12cm]{./Figures/ImpTimeSeries} \caption{Placeholder until I can make something that works for the size}\label{fig:unnamed-chunk-1}
 \end{figure}
 
 These are not quite good enough.
 
 \begin{figure}
-\includegraphics[width=8.3cm]{./Figures/Spark2017_GMD} \caption{2017}\label{fig:unnamed-chunk-5}
+\includegraphics[width=8.3cm]{./Figures/Spark2017_GMD} \caption{2017}\label{fig:unnamed-chunk-2}
 \end{figure}
 
 \begin{figure}
-\includegraphics[width=8.3cm]{./Figures/Spark2018_GMD} \caption{2018}\label{fig:unnamed-chunk-6}
+\includegraphics[width=8.3cm]{./Figures/Spark2018_GMD} \caption{2018}\label{fig:unnamed-chunk-3}
 \end{figure}
 
 \begin{figure}
-\includegraphics[width=8.3cm]{./Figures/Spark2019_GMD} \caption{2019}\label{fig:unnamed-chunk-7}
+\includegraphics[width=8.3cm]{./Figures/Spark2019_GMD} \caption{2019}\label{fig:unnamed-chunk-4}
 \end{figure}
 
 \begin{figure}
-\includegraphics[width=8.3cm]{./Figures/Spark2020_GMD} \caption{2020}\label{fig:unnamed-chunk-8}
+\includegraphics[width=8.3cm]{./Figures/Spark2020_GMD} \caption{2020}\label{fig:unnamed-chunk-5}
 \end{figure}
 
 \begin{figure}
-\includegraphics[width=8.3cm]{./Figures/Spark2021_GMD} \caption{2021}\label{fig:unnamed-chunk-9}
+\includegraphics[width=8.3cm]{./Figures/Spark2021_GMD} \caption{2021}\label{fig:unnamed-chunk-6}
 \end{figure}
 
 \subsection{Maps}
@@ -443,195 +490,6 @@ These are not quite good enough.
 \item
   limitations
 \end{itemize}
-
-\section{Content section with citations}
-
-See the
-\href{http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html}{R
-Markdown docs for bibliographies and citations}.
-
-\section{Content section with R code chunks}
-
-You should always use \texttt{echo\ =\ FALSE} on R Markdown code blocks
-as they add formatting and styling not desired by Copernicus. The hidden
-workflow results in 42.
-
-You can add verbatim code snippets without extra styles by using
-\texttt{\textasciigrave{}\textasciigrave{}\textasciigrave{}} without
-additional instructions.
-
-\begin{verbatim}
-sum <- 1 + 41
-\end{verbatim}
-
-\section{Content section with list}
-
-If you want to insert a list, you must
-
-\begin{itemize}
-\item
-  leave
-\item
-  empty lines
-\item
-  between each list item
-\end{itemize}
-
-because the \texttt{\textbackslash{}tightlist} format used by R Markdown
-is not supported in the Copernicus template. Example:
-
-\begin{verbatim}
-- leave
-
-- empty lines
-
-- between each list item
-\end{verbatim}
-
-\section{Examples from the official template}
-
-\subsection{FIGURES}
-
-When figures and tables are placed at the end of the MS (article in
-one-column style), please add \clearpage between bibliography and first
-table and/or figure as well as between each table and/or figure.
-
-\subsection{MATHEMATICAL EXPRESSIONS}
-
-All papers typeset by Copernicus Publications follow the math
-typesetting regulations given by the IUPAC Green Book (IUPAC:
-Quantities, Units and Symbols in Physical Chemistry, 2nd Edn., Blackwell
-Science, available at:
-http://old.iupac.org/publications/books/gbook/green\_book\_2ed.pdf,
-1993).
-
-Physical quantities/variables are typeset in italic font (t for time, T
-for Temperature)
-
-Indices which are not defined are typeset in italic font (x, y, z, a, b,
-c)
-
-Items/objects which are defined are typeset in roman font (Car A, Car B)
-
-Descriptions/specifications which are defined by itself are typeset in
-roman font (abs, rel, ref, tot, net, ice)
-
-Abbreviations from 2 letters are typeset in roman font (RH, LAI)
-
-Vectors are identified in bold italic font using \vec{x}
-
-Matrices are identified in bold roman font
-
-Multiplication signs are typeset using the LaTeX commands
-\texttt{\textbackslash{}times} (for vector products, grids, and
-exponential notations) or \texttt{\textbackslash{}cdot}
-
-The character * should not be applied as mutliplication sign
-
-\subsection{EQUATIONS}
-
-\subsubsection{Single-row equation}
-
-Unnumbered equations (i.e.~using \texttt{\$\$} and getting inline
-preview in RStudio) are not supported by Copernicus.
-
-\begin{equation}
-1 \times 1 \cdot 1 = 42
-\end{equation}
-
-\begin{equation}
-A = \pi r^2
-\end{equation}
-
-\begin{equation}
-x=\frac{2b\pm\sqrt{b^{2}-4ac}}{2c}.  
-\end{equation}
-
-\subsubsection{Multiline equation}
-
-\begin{align}
-& 3 + 5 = 8\\
-& 3 + 5 = 8\\
-& 3 + 5 = 8
-\end{align}
-
-\subsection{MATRICES}
-
-\[
-\begin{matrix}
-x & y & z\\
-x & y & z\\
-x & y & z\\
-\end{matrix}
-\]
-
-\subsection{ALGORITHM/PROGRAMMING CODE}
-
-If you want to use algorithms, you need to make sure yourself that the
-\LaTeX packages \texttt{algorithms} and \texttt{algorithmicx} are
-installed so that \texttt{algorithm.sty} respectively
-\texttt{algorithmic.sty} can be loaded by the Copernicus template. Both
-need to be available through your preferred \LaTeX{} distribution. With
-TinyTeX (or TeX Live), you can do so by running
-\texttt{tinytex::tlmgr\_install(c("algorithms",\ "algorithmicx"))}
-
-Copernicus staff will no accept any additional packages from your LaTeX
-source code, so please stick to these two acceptable packages. They are
-needed to use the example below
-
-\begin{algorithm}
-\caption{Algorithm Caption}
-\label{a1}
-\begin{algorithmic}
-\STATE $i\gets 10$
-\IF {$i\geq 5$} 
-        \STATE $i\gets i-1$
-\ELSE
-        \IF {$i\leq 3$}
-                \STATE $i\gets i+2$
-        \ENDIF
-\ENDIF
-\end{algorithmic}
-\end{algorithm}
-
-\subsection{CHEMICAL FORMULAS AND REACTIONS}
-
-For formulas embedded in the text, please use
-\texttt{\textbackslash{}chem\{\}}, e.g.~\chem{A \rightarrow B}.
-
-The reaction environment creates labels including the letter R,
-i.e.~(R1), (R2), etc.
-
-\begin{itemize}
-\item
-  \texttt{\textbackslash{}rightarrow} should be used for normal
-  (one-way) chemical reactions
-\item
-  \texttt{\textbackslash{}rightleftharpoons} should be used for
-  equilibria
-\item
-  \texttt{\textbackslash{}leftrightarrow} should be used for resonance
-  structures
-\end{itemize}
-
-\begin{reaction}
-A \rightarrow B \\
-\end{reaction}
-\begin{reaction}
-Coper \rightleftharpoons nicus \\
-\end{reaction}
-\begin{reaction}
-Publi \leftrightarrow cations
-\end{reaction}
-
-\subsection{PHYSICAL UNITS}
-
-Please use \texttt{\textbackslash{}unit\{\}} (allows to save the
-math/\texttt{\$} environment) and apply the exponential notation, for
-example \(3.14\,\unit{km\,h^{-1}}\) (using LaTeX mode:
-\texttt{\textbackslash{}(\ 3.14\textbackslash{},\textbackslash{}unit\{...\}\ \textbackslash{})})
-or \unit{0.872\,m\,s^{-1}} (using only
-\texttt{\textbackslash{}unit\{0.872\textbackslash{},m\textbackslash{},s\^{}\{-1\}\}}).
 
 \conclusions[Conclusions]
 
