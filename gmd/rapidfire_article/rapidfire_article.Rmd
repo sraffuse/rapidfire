@@ -255,36 +255,33 @@ Both    & 0.77  & 7.52    & 1.84   & 22.4  & 2.70 & 29.9
 
 These are not quite good enough.
 
-```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "2017"}
-    knitr::include_graphics("./Figures/Spark2017_GMD.png")
+The results are plotted across California for two wildfire seasons: August - October, 2020 (\ref{fig:res_2020}) and August - October, 2021 (\ref{fig:res_2021}). In each case, daily average PM~2.5~ reaches values greater than $200\,\unit{\mu g\,m^{-3}}$, with very strong spatial and temporal variability. The 2020 case shows three widespread peaks, in August, September, and October. In the 2021 case, concentrations were highest in northern locations in August, while values were higher further south in September and early October. These two evens highlight the complexity of these smoke events, which are controlled by multiple wildfires burning in and around the state.
+
+```{r res_2020, out.width = "40%", fig.show = "hold", echo = FALSE, fig.cap = "2020"}
+    knitr::include_graphics("./Figures/Sparkmap2020.png")
+    knitr::include_graphics("./Figures/SparkLegend2020.png")
 ```
 
-```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "2018"}
-    knitr::include_graphics("./Figures/Spark2018_GMD.png")
+
+```{r res_2021, out.width = "40%", fig.show = "hold", echo = FALSE, fig.cap = "2021"}
+    knitr::include_graphics("./Figures/Sparkmap2021.png")
+    knitr::include_graphics("./Figures/SparkLegend2021.png")
 ```
 
-```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "2019"}
-    knitr::include_graphics("./Figures/Spark2019_GMD.png")
-```
-
-```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "2020"}
-    knitr::include_graphics("./Figures/Spark2020_GMD.png")
-```
-
-```{r, out.width = "8.3cm", echo = FALSE, fig.cap = "2021"}
-    knitr::include_graphics("./Figures/Spark2021_GMD.png")
-```
 
 ## Maps
+# Code?
 
 # Discussion
 
-# Code?
+## Model input importance
 
--   Importance plots
+Although the random forest model uses all of the provided predictor variables, the most explanatory variables are selected more often at each node. The relative importance of each variable can calculated as blah blah be visualized through a
+
+
 -   application for health studies
--   advantages over existing methods
--   limitations
+## Advantages over existing methods
+## Limitations
 
 
 \conclusions[Conclusions]
