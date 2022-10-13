@@ -87,7 +87,6 @@ maiac_mosaic <- function(tiles) {
 
 # Use raster::focal to fill in some missing values by interpolating neighbors,
 # Then replace the remaining missing values with the median value
-
 maiac_fill_gaps <- function(maiac, window = 7) {
 
   md <- terra::global(maiac, fun = median, na.rm = TRUE) %>%
@@ -150,6 +149,22 @@ maiac_one_day <- function(dt, input_path = "./data/MAIAC/",
 
 }
 
+#' maiac_at_airnow
+#'
+#' Extract aerosol optical depth values at point locations on given dates from
+#' pre-downloaded MAIAC aerosol tiles (MCD19A2).
+#'
+#' @param an A SpatialPointsDataFrame with monitor data such as from
+#'   \code{\link{recast_monitors}}
+#' @param maiac_path The path to the MAIAC data (defaults to "./data/MAIAC/")
+#' @param tiles_needed The MODIS tiles required for the region of interest.
+#'   Default is c("h08v04", "h08v05", "h09v04") which covers California.
+#'
+#' @return The data frame from \emph{an} with the extracted values from the
+#'   MAIAC data appended
+#' @export
+#'
+#' @examples  maiac <- maiac_at_airnow(mon)
 maiac_at_airnow <- function(an, maiac_path = "./data/MAIAC/",
                             tiles_needed = c("h08v04", "h08v05", "h09v04")) {
 

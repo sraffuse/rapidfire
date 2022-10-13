@@ -1,7 +1,37 @@
 # Automation functions (scripts) for developing models over a given period using
 # the standard stuff (AirNow/AirSis, PurpleAir, MAIAC AOD, BlueSky, NARR)
 
-# This function requires MAIAC and NARR data to be downloaded already
+#' develop_model
+#'
+#' Specify start and end dates, and states to train a model. Note that this
+#' function requires MAIAC and NARR data be downloaded already. See
+#' \code{\link{maiac_download}} and \code{\link{get_narr}}.
+#'
+#' @param dt1 date Start date of the model input data
+#' @param dt2 date End date of the model input data
+#' @param states character A vector of two-letter state abbreviations
+#' @param pa_cutoff numeric The distance in meters to consider PurpleAir data in
+#'   kriging. The default value is 100,000 m (100 km).
+#'   \code{\link{create_purpleair_variogram}}.
+#' @param seed numeric A number to set the randomization seed for
+#'   reproducibility
+#' @param bluesky_special character Handles two special cases of BlueSky data.
+#'   If "2020", processes data prior to October 10, 2020 separately from that
+#'   after, as the BlueSky data format changed. If "HAQAST", uses custom
+#'   BlueSky-CMAQ output created during the HAQAST campaign (see
+#'   \url{https://doi.org/10.1080/10962247.2021.1891994}{O'Neill et al., 2021}).
+#' @param pa_data character Path to an RDS file of pre-retrieved PurpleAir data
+#'   from \code{\link{get_purpleair_daterange}}.
+#'
+#' @return A list with two items. model contains the model as returned by
+#'   \code{\link[caret]{train}}. output is a dataframe with the input data and
+#'   the modeled predictions.
+#' @export
+#'
+#' @examples dt1 <- as.Date("2018-11-01")
+#' dt2 <- as.Date("2018-11-30")
+#' pa <- "./data/purpleair/purpleair_2018.RDS"
+#' mod_2018_nov_<- develop_model(dt1, dt2, states = "CA", pa_data = pa)
 develop_model <- function(dt1, dt2, states, pa_cutoff = 100000, seed = 1977,
                           bluesky_special = NULL, pa_data = NULL) {
 

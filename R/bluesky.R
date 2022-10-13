@@ -85,6 +85,23 @@ bluesky_at_airnow <- function(an, bluesky_path = "./data/bluesky/NAM",
 
 # Take a raster stack of 24-hr avg PM2.5 and extract values at a set of
 # locations on multiple days
+
+
+#' preprocessed_bluesky_at_airnow
+#'
+#' Take a raster stack of 24-hr avg PM2.5 from
+#' \code{\link{stack_bluesky_archive}} or \code{\link{stack_haqast_archive}} and
+#' extract values at locations and dates from \code{\link{recast_monitors}}.
+#' @param stack A raster stack with daily 24-hr average PM2.5 values, such as
+#'   from \code{\link{stack_bluesky_archive}}
+#' @param an A SpatialPointsDataFrame with monitor data such as from
+#'   \code{\link{recast_monitors}}
+#'
+#' @return The data frame from \emph{an} with the extracted values from the
+#'   bluesky raster stack appended
+#' @export
+#'
+#' @examples bluesky <- preprocessed_bluesky_at_airnow(bluesky_stack, mon)
 preprocessed_bluesky_at_airnow <- function(stack, an) {
 
   dates <- unique(an$Day)
@@ -139,6 +156,21 @@ read_bluesky_archive <- function(dt, path = "./data/bluesky/archive") {
 
 }
 
+#' stack_bluesky_archive
+#'
+#' Take all of the bluesky archive files from a given path within a date range
+#' and read them into a raster stack. All days within the range should be
+#' available.
+#'
+#' @param dt1 Date of the first bluesky raster
+#' @param dt2 Date of the last bluesky raster
+#' @param path character path to the archive files (default is
+#'   "./data/bluesky/archive")
+#'
+#' @return a raster stack of daily bluesky data
+#' @export
+#'
+#' @examples bluesky_stack <- stack_bluesky_archive(dt1, dt2)
 stack_bluesky_archive <- function(dt1, dt2, path = "./data/bluesky/archive") {
 
   dates <- seq.Date(from = dt1, to = dt2, by = "1 day")
@@ -150,7 +182,8 @@ stack_bluesky_archive <- function(dt1, dt2, path = "./data/bluesky/archive") {
 
 }
 
-# These two are like read_bluesky_archive and stack_bluesky_archive, but for the HAQAST CMAQ data
+# These two are like read_bluesky_archive and stack_bluesky_archive, but for the
+# HAQAST CMAQ data, which has a different structure
 read_haqast_archive <- function(dt, path = "./data/bluesky/HAQAST_S1") {
 
   filename <- paste0("out.combine_", strftime(dt, format = "%Y%m%d"))
@@ -183,6 +216,21 @@ read_haqast_archive <- function(dt, path = "./data/bluesky/HAQAST_S1") {
 
 }
 
+#' stack_haqast_archive
+#'
+#' See \code{\link{stack_bluesky_archive}}. Works in the same way, but uses the
+#' CMAQ output produced by the HAQAST Northern California Wildfires Tiger Team
+#' project.
+#'
+#' @param dt1 Date of the first bluesky raster
+#' @param dt2 Date of the last bluesky raster
+#' @param path character path to the archive files (default is
+#'   "./data/bluesky/HAQAST_S1")
+#'
+#' @return a raster stack of daily HAQAST bluesky data
+#' @export
+#'
+#' @examples bluesky_stack <- stack_haqast_archive(dt1, dt2)
 stack_haqast_archive <- function(dt1, dt2, path = "./data/bluesky/HAQAST_S1") {
 
   dates <- seq.Date(from = dt1, to = dt2, by = "1 day")
@@ -251,8 +299,19 @@ preprocessed_bluesky_at_grid <- function(start, end, stack, grid) {
 
 }
 
-# For a given spatial points data frame, assign bluesky archive values for all
-# of the needed dates
+#' bluesky_archive_at_locs
+#'
+#' For a given spatial points data frame, assign bluesky archive values for all
+#' of the needed dates
+#'
+#' @param locs A SpatialPointsDataFrame of locations and dates
+#' @param path The path to bluesky archive data (default is
+#'   "./data/bluesky/archive/)
+#'
+#' @return The data from \emph{locs} with BlueSky PM2.5 appended (as PM25_bluesky)
+#' @export
+#'
+#' @examples bluesky <- bluesky_archive_at_locs(locations)
 bluesky_archive_at_locs <- function(locs, path = "./data/bluesky/archive/") {
 
   dates <- unique(locs$Day)

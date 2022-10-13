@@ -30,6 +30,19 @@ extract_narr <- function(date, var, locs, input_path = "./data/NARR/") {
 
 }
 
+#' narr_at_airnow
+#'
+#' Extract surface temperature, winds, RF, precip, and planetary boundary layer
+#' height from pre-downloaded NARR data
+#'
+#' @param an_data A SpatialPointsDataFrame with monitor data such as from
+#'   \code{\link{recast_monitors}}
+#'
+#' @return The data frame from \emph{an_data} with the extracted values from the
+#'   MAIAC data appended
+#' @export
+#'
+#' @examples narr <- narr_at_airnow(mon)
 narr_at_airnow <- function(an_data) {
 
   date <- unique(an_data$Day)
