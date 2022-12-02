@@ -170,7 +170,7 @@ hpbl           & Daily average height of the planetary boundary layer from NARR
 \label{table:1}
 \end{table}
 ```
-## Model Validation
+## Model Evaluation
 
 We developed models for five large wildfire smoke events from 2017-2021 in Northern California (Table \ref{table:2}) and validated the modeling against two data sets of PM~2.5~ observations, 1) the permanent and temporary hourly monitors described above, and 2) 24-hr filter-based measurements from the IMPROVE and CSN networks.
 
