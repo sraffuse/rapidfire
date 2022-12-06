@@ -50,12 +50,14 @@ maiac_download <- function(dt, user, password, outpath = "./data/MAIAC/",
   files_needed <- purrr::map_chr(patterns,
                                  ~stringr::str_subset(all_files, pattern = .x))
 
+  # If the file already exists on disk, just move on to the next one
+  write_disk_w_skip <- purrr::possibly(httr::write_disk, NULL)
 
   # Now, download each file
   download_one <- function(filename, user, pw) {
     fileUrl <- paste0(folder, "/", filename)
     httr::GET(fileUrl, httr::authenticate(user, pw),
-              httr::write_disk(paste0(outpath, filename)), httr::timeout(60))
+              write_disk_w_skip(paste0(outpath, filename)), httr::timeout(60))
   }
 
   purrr::walk(files_needed, download_one, user, password)
