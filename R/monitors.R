@@ -323,7 +323,8 @@ krige_airnow_all <- function(an, outlocs, vgms) {
   dates <- unique(an$Day)
   rows <- purrr::map_dfr(vgms, ~.x$d, .id = "row") %>%
     mutate(row = as.numeric(row)) %>%
-    select(row, Day)
+    select(row, Day) %>%
+    distinct()
 
   process_one_ok <- function(date, an, outlocs, vgms, rows) {
     # extract the correct model data
@@ -332,6 +333,7 @@ krige_airnow_all <- function(an, outlocs, vgms) {
       .$row
     mod <- vgms[[row]]$m
     locs <- an[an$Day == date,]
+    outlocs <- outlocs[outlocs$Day == date,]
     print(date)
     ok <- gstat::krige(PM25_log ~ 1, locations = locs, newdata = outlocs,
                        model = mod)
