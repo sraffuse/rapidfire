@@ -9,9 +9,6 @@ purpleair_spatial(df)
 \arguments{
 \item{df}{}
 }
-\value{
-
-}
 \description{
 Get log of daily mean, select only one sensor per location, convert to
 SpatialPointsDataFrame, and project to planar coordinates

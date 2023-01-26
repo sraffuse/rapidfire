@@ -1,34 +1,36 @@
 Package: rapidfire
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: relatively accurate particulate information derived from inputs retrieved easily
+Version: 0.1.1
+Author: Sean Raffuse
+Maintainer: Sean Raffuse <sraffuse@ucdavis.edu>
+Description: Tools for acquiring input data, developing regression models, and using those models to predict surface level PM2.5 concentrations, especially during wildfire smoke episodes.
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Imports:
-  fs,
-  purrr,
-  ncdf4,
-  raster,
-  rgdal,
-  sp,
-  randomForest,
-  caret,
-  rvest,
-  httr,
-  terra,
-  stringr,
-  PWFSLSmoke,
-  lubridate,
-  tidyr,
-  gstat,
-  AirSensor,
-  sf
+    fs,
+    dplyr,
+    purrr,
+    ncdf4,
+    raster,
+    rgdal,
+    sp,
+    randomForest,
+    caret,
+    rvest,
+    httr,
+    terra,
+    stringr,
+    PWFSLSmoke,
+    lubridate,
+    tidyr,
+    gstat,
+    AirSensor,
+    sf,
+    jsonlite,
+    magrittr
 Suggests:
   ggplot2,
   Reanalysis
