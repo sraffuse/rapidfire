@@ -1,5 +1,5 @@
 # Tools to create an output grid for predection and pretty pictures. We can also
-# just do the predictions at participant locations, but that would require
+# just do the predictions at participant locations, but that requires
 # running kriging and extraction every time a location changed.
 
 # Make a grid for output predictions from an SPDF
