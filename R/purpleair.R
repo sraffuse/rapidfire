@@ -2,40 +2,303 @@
 # PurpleAir will be one of the inputs to the RF model, after a small bit of
 # scrubbing and interpolation by ordinary kriging
 
-# pa <- get_purpleair_daterange(dt, dt, c("CA", "NV"))
+# Since PA changed their API in 2022, old methods no longer work. Need to
+# replace them one-by-one
 
 
-#' get_purpleair_daterange
+#' Check that your PurpleAir API key is working and that it is the correct type
 #'
-#' @param start Date The earliest date to search.
-#' @param end Date The latest date to search.
-#' @param states character The states to include as a vector of two-character
-#'   state abbreviations
+#' @param key A PurpleAir API key
 #'
-#' @return A \emph{pas} object of outdoor PurpleAir data from the requested
-#'   location and time period
+#' @return The type of API key. Either "READ" or "WRITE"
 #' @export
 #'
-#' @examples pa_data <- get_purpleair_daterange(dt1, dt2, "CA")
-get_purpleair_daterange <- function(start, end, states) {
-  AirSensor::setArchiveBaseUrl("https://airfire-data-exports.s3-us-west-2.amazonaws.com/PurpleAir/v1")
+#' @examples
+pa_check_api_key <- function(key) {
 
-  get_one_day <- function(dt, states) {
-    # only include sensors that reported recently (hr 20 on this day)
-    valid_datetime <- as.POSIXct(dt) + (20 * 60 * 60)
-    AirSensor::pas_load(strftime(dt, format = "%Y%m%d"),
-                        timezone = "America/Los_Angeles") %>%
-      filter(stateCode %in% states,
-             DEVICE_LOCATIONTYPE == "outside",
-             lastSeenDate > valid_datetime,
-             statsLastModifiedDate > valid_datetime) %>%
-      mutate(Date = dt)
+  query_string <- list(
+    api_key = key
+  )
+
+  url <- "https://api.purpleair.com/v1/keys"
+
+  response <- httr::VERB("GET", url, query = query_string,
+                         httr::content_type("application/octet-stream"),
+                         httr::accept("application/json"))
+  result <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"))
+
+  if (!is.null(result$error)) {
+    stop(result$error, ": ", result$description)
   }
-
-  dates <- seq.Date(from = start, to = end, by = "1 day")
-  purrr::map_dfr(dates, get_one_day, states)
+  result$api_key_type
 
 }
+
+#' Get all of the PurpleAir sensor indices within a bounding box. See
+#' https://api.purpleair.com/#api-sensors-get-sensors-data
+#'
+#' @param nwlng A northwest longitude for the bounding box
+#' @param nwlat A northwest latitude for the bounding box
+#' @param selng A southeast longitude for the bounding box
+#' @param selat A southeast latitude for the bounding box
+#' @param key A PurpleAir READ API key
+#'
+#' @return A data frame with sensor_index, date_created, last_seen, name,
+#'   latitude, and longitude for all sensors within the specified bounding box.
+#' @export
+#'
+#' @examples # CA Bounding Box
+#' nwlng <- -124.41
+#' nwlat <- 42.01
+#' selng <- -114.13
+#' selat <- 32.53
+#' pa_find_sensors(nwlng, nwlat, selng, selat, key = my_api_key)
+pa_find_sensors <- function(nwlng, nwlat, selng, selat, key) {
+
+  query_string <- list(
+    api_key = key,
+    fields = "name,latitude,longitude,last_seen,date_created",
+    location_type = "0", # outside
+    max_age = "0",
+    nwlng = nwlng,
+    nwlat = nwlat,
+    selng = selng,
+    selat = selat
+  )
+
+  url <- "https://api.purpleair.com/v1/sensors"
+
+  response <- httr::VERB("GET", url, query = query_string,
+                         httr::content_type("application/octet-stream"),
+                         httr::accept("application/json"))
+  result <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"))
+
+  if (!is.null(result$error)) {
+    stop(result$error, ": ", result$description)
+  }
+
+  df <- as.data.frame(result$data)
+  names(df) <- result$fields
+  df %>%
+    mutate(last_seen = lubridate::as_datetime(as.numeric(last_seen)),
+           date_created = lubridate::as_datetime(as.numeric(date_created)))
+
+}
+
+#' Get the historical data for a specific PurpleAir sensor over a time period.
+#' This requires a PurpleAir API key with access to historical data, which can
+#' be requested.
+#'
+#' @param sensor_index The numeric PurpleAir sensor index for for the sensor to request
+#' @param start_date Date the first date to request
+#' @param end_date Date the last date to request
+#' @param key A PurpleAir API read key with access to historical data
+#'
+#' @return
+#' @export
+#'
+#' @examples
+pa_sensor_history <- function(sensor_index, start_date, end_date, key) {
+
+  # Convert to date (in case we have a full timestamp)
+  start_date <- as.Date(start_date)
+  end_date <- as.Date(end_date) + 1
+
+  # Current API limits to 14 day windows for hourly averages, so break into
+  # chunks if longer than that.
+  start_dates <- seq.Date(from = start_date, to = end_date, by = "14 days")
+  end_dates <- start_dates + 14
+
+  pa_sensor_week <- function(start, end) {
+    query_string <- list(
+      api_key = key,
+      start_timestamp = strftime(start, format = "%FT00:00:00Z"),
+      end_timestamp = strftime(end, format = "%FT00:00:00Z"),
+      average = 60,
+      fields = "pm2.5_atm"
+    )
+
+    url <- paste0("https://api.purpleair.com/v1/sensors/",
+                  sensor_index,
+                  "/history")
+
+    # If this doesn't work - take a 30 minute pause
+    for(i in 1:4){
+      if (i > 1) {
+        cat("Call failed ", i, " times. Pausing 30 minutes before retry.")
+        Sys.sleep(30 * 60)
+      }
+      try({
+        response <- httr::VERB("GET", url, query = query_string,
+                               httr::content_type("application/octet-stream"),
+                               httr::accept("application/json"))
+        result <- jsonlite::fromJSON(httr::content(response, "text", encoding = "UTF-8"))
+        break #break/exit the for-loop
+      }, silent = FALSE)
+    }
+
+    if (!is.null(result$error)) {
+      stop(result$error, ": ", result$description)
+    }
+
+    df <- as.data.frame(result$data)
+    if (nrow(df) == 0) {
+      return(NULL)
+    }
+    names(df) <- result$fields
+    df %>%
+      mutate(sensor_index = sensor_index,
+             pm2.5_atm = as.numeric(pm2.5_atm),
+             time_stamp = as.POSIXct(time_stamp, format = "%FT%TZ"))
+
+  }
+
+  purrr::map2_dfr(start_dates, end_dates, pa_sensor_week)
+
+}
+
+#' Download all of the PurpleAir sensors within a bounding polygon and a time
+#' range, one sensor at a time. This requires a PurpleAir API read key with
+#' access to historical data. Note that the PurpleAir API has a nominal limit of
+#' 1000 queries per key per day.
+#'
+#' @param first_date Date First day of data to request
+#' @param last_date Date Last day of data to request
+#' @param bounding_poly A simple features polygon, such as a state or country
+#' @param api_key A PurpleAir API read key with access to historical data
+#' @param output_folder The location where the output RDS files should be stored
+#' @param starting_point If specified, the rownumber to begin processing.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+pa_batch_download_sensors <- function(first_date, last_date, bounding_poly,
+                                      api_key, output_folder,
+                                      starting_point = NULL) {
+
+  # Make sure the bounding poly is in the same crs
+  bounding_poly <- sf::st_transform(bounding_poly, crs = 4326)
+
+  # Get the bounding box to query the PA API for sensors
+  bbox <- sf::st_bbox(bounding_poly)
+
+  # Query
+  sensors_in_box <- pa_find_sensors(nwlng = bbox["xmin"], nwlat = bbox["ymax"],
+                                    selng = bbox["xmax"], selat = bbox["ymin"],
+                                    key = api_key)
+
+  # Limit to within bounding polygon
+  sens_sf <- sf::st_as_sf(sensors_in_box, coords = c("longitude", "latitude"),
+                          crs = 4326)
+  ints <- sf::st_intersects(sens_sf, bounding_poly, sparse = FALSE)
+  pa <- sensors_in_box[ints[,1],]
+
+  runs <- pa %>%
+    select(sensor_index, start_date=date_created, end_date=last_seen) %>%
+    mutate(key = api_key)
+
+  # We save each monitor to RDS in case this fails at any time, so we can pick
+  # up where we left off
+  save_pa <- function(sensor_index, start_date, end_date, key) {
+    df <- pa_sensor_history(sensor_index, start_date, end_date, key)
+    filename <- glue::glue("{sensor_index}.RDS")
+    saveRDS(df, fs::path_join(c(output_folder, filename)))
+  }
+
+  # Limit to the time period of interested (within first and last date)
+  first <- as.POSIXct(first_date)
+  last <- as.POSIXct(last_date)
+  runs2 <- runs %>%
+    mutate(start_date = if_else(start_date < first, first, start_date),
+           end_date = if_else(end_date > last, last, end_date)) %>%
+    filter(start_date < end_date)
+
+  # This may fail after a while do to API limits or other issues. If so, we can
+  # continue from the specified starting point
+  if (!is.null(starting_point)) {
+    runs2 <- slice(runs2, starting_point:nrow(runs2))
+  }
+  purrr::pwalk(runs2, save_pa, .progress = TRUE)
+}
+
+
+#' Compile downloaded individual sensor information from the PurpleAir API into
+#' a single data set covering a specified time period
+#'
+#' @param start_date Date The first date of the time period
+#' @param end_date Date The last date of the time period
+#' @param sensors A data frame from \code{\link{pa_find_sensors}}
+#' @param sensor_folder The folder location of the sensor data in individual
+#'   files acquired from \code{\link{pa_batch_download_sensors}}
+#'
+#' @return A data frame of PurpleAir data that can be passed to other routines,
+#'   specifically \code{\link{purpleair_spatial}}
+#' @export
+#'
+#' @examples
+pa_build_dataset <- function(start_date, end_date, bounding_poly, api_key,
+                             sensor_folder) {
+
+  # Make sure the bounding poly is in the same crs
+  bounding_poly <- sf::st_transform(bounding_poly, crs = 4326)
+
+  # Get the bounding box to query the PA API for sensors
+  bbox <- sf::st_bbox(bounding_poly)
+
+  # Query
+  sensors_in_box <- pa_find_sensors(nwlng = bbox["xmin"], nwlat = bbox["ymax"],
+                                    selng = bbox["xmax"], selat = bbox["ymin"],
+                                    key = api_key)
+
+  # Limit to within bounding polygon
+  sens_sf <- sf::st_as_sf(sensors_in_box, coords = c("longitude", "latitude"),
+                          crs = 4326)
+  ints <- sf::st_intersects(sens_sf, bounding_poly, sparse = FALSE)
+  sensors <- sensors_in_box[ints[,1],]
+
+  # Eliminate any sensors that do not have data within the time range
+  df <- sensors %>%
+    filter(date_created < end_date,
+           last_seen > start_date)
+
+  # For each sensor, open the file, get the data
+  process_sensor <- function(i) {
+
+    sensor_info <- sensors %>%
+      filter(sensor_index == i)
+
+    filename <- fs::path_join(c(sensor_folder, glue::glue("{i}.RDS")))
+    try_read <- purrr::possibly(readRDS)
+    df <- try_read(filename)
+    if (is.null(df)) {
+      return(NULL)
+    }
+
+    #TODO: Backtrace time zones to be sure this is correct
+    # Calculated daily mean, require at least 15 hours of data
+    if (nrow(df) == 0) {
+      return(NULL)
+    }
+    df <- df %>%
+      mutate(Date = lubridate::floor_date(time_stamp, "days")) %>%
+      filter(Date >= start_date,
+             Date <= end_date) %>%
+      group_by(Date) %>%
+      summarise(pm25_1day = mean(pm2.5_atm, na.rm = TRUE),
+                n = n()) %>%
+      filter(n >= 15) %>%
+      mutate(latitude = as.numeric(sensor_info$latitude),
+             longitude = as.numeric(sensor_info$longitude),
+             deviceID = i) %>%
+      select(deviceID, Date, latitude, longitude, pm25_1day, n)
+  }
+
+  purrr::map_dfr(sensors$sensor_index, process_sensor, .progress = TRUE)
+
+}
+
+
 
 
 #' purpleair_spatial
@@ -245,80 +508,6 @@ krige_purpleair_all <- function(pa_data, out_locs, vgms) {
 }
 
 
-#' create_purpleair_archive
-#'
-#' Download and process PurpleAir for given states over a given daterange.
-#'
-#' @param dt1 Date The earliest date to search
-#' @param dt2 Date The latest date to search
-#' @param states character A vector of two-character state codes
-#' @param pas An optional pas object that contains the list of sites to search
-#'   for
-#'
-#' @return A pas-like object of PurpleAir data that can be used in further
-#'   processing
-#' @export
-#'
-#' @examples pa_data <- create_purpleair_archive(dt1, dt2, "CA")
-create_purpleair_archive <- function(dt1, dt2, states = "CA", pas = NULL) {
-
-  if (dt1 < as.Date("2019-04-06")) {
-    load_date <- "20190406"
-  } else {
-    load_date <- strftime(dt1, format = "%Y%m%d")
-  }
-
-  # Add a day to the end because of date squirrelyness
-  dt2 <- dt2 + 1
-
-  # Get the oldest possible snapshot
-  AirSensor::setArchiveBaseUrl("http://data.mazamascience.com/PurpleAir/v1")
-  if (is.null(pas)) {
-    pas <- AirSensor::pas_load(load_date, archival = TRUE) %>%
-      filter(stateCode %in% states)
-  }
-
-  ids <- AirSensor::pas_getDeviceDeploymentIDs(pas, isOutside = TRUE)
-
-  pb <- progress::progress_bar$new(total = length(ids))
-  pas <- purrr::map_dfr(ids, pat_to_paslike, dt1, dt2, pas, pb)
-
-}
-
-# For a given device and time range, acquire available data raw data and return
-# 24-hr average results in a pas-like format
-pat_to_paslike <- function(deviceDeploymentID, dt1, dt2, pas, pb) {
-
-  pb$tick()
-  try_pat <- purrr::possibly(AirSensor::pat_createNew, otherwise = NULL)
-  pat <- try_pat(id = deviceDeploymentID, pas = pas, startdate = dt1,
-                 enddate = dt2, verbose = TRUE)
-  if (is.null(pat)) {
-    return(NULL)
-  }
-
-  m <- pat$meta
-
-  # Keep only data when the two channels are tracking
-  # Keep only values that either have abs(SRD) < 0.5 or Avg < 2
-  df <- pat$data %>%
-    mutate(datetime = lubridate::with_tz(datetime, tzone = m$timezone[1]),
-           Date = lubridate::floor_date(datetime, unit = "days"),
-           SAD = (pm25_A - pm25_B) / sqrt(2),
-           Avg = (pm25_A + pm25_B) / 2,
-           SRD = SAD/Avg) %>%
-    filter(abs(SRD) <= 0.5 | Avg < 2) %>%
-    group_by(Date) %>%
-    summarise(across(pm25_A:pm10_atm_B, ~ mean(.x, na.rm = TRUE)),
-              Count = n()) %>%
-    mutate(Fraction = Count / 1440,
-           pm25_1day = (pm25_A + pm25_B) / 2,
-           ID = m$ID)
-
-  df <- right_join(m, df, by = "ID")
-
-}
-
 
 # Krige monitor data for all locations and dates in an input SpatialPointsDataFrame
 
@@ -367,3 +556,116 @@ krige_purpleair_sitedates <- function(pa_data, outlocs, vgms) {
   }
   all <- purrr::map_dfr(dates, process_one_ok, pa_data, outlocs, vgms, rows)
 }
+
+
+#' get_purpleair_daterange
+#'
+#' This function is deprecated. It was designed for the old (pre 2022) PurpleAir API
+#'
+#' @param start Date The earliest date to search.
+#' @param end Date The latest date to search.
+#' @param states character The states to include as a vector of two-character
+#'   state abbreviations
+#'
+#' @return A \emph{pas} object of outdoor PurpleAir data from the requested
+#'   location and time period
+#' @export
+#'
+#' @examples pa_data <- get_purpleair_daterange(dt1, dt2, "CA")
+get_purpleair_daterange <- function(start, end, states) {
+  AirSensor::setArchiveBaseUrl("https://airfire-data-exports.s3-us-west-2.amazonaws.com/PurpleAir/v1")
+
+  get_one_day <- function(dt, states) {
+    # only include sensors that reported recently (hr 20 on this day)
+    valid_datetime <- as.POSIXct(dt) + (20 * 60 * 60)
+    AirSensor::pas_load(strftime(dt, format = "%Y%m%d"),
+                        timezone = "America/Los_Angeles") %>%
+      filter(stateCode %in% states,
+             DEVICE_LOCATIONTYPE == "outside",
+             lastSeenDate > valid_datetime,
+             statsLastModifiedDate > valid_datetime) %>%
+      mutate(Date = dt)
+  }
+
+  dates <- seq.Date(from = start, to = end, by = "1 day")
+  purrr::map_dfr(dates, get_one_day, states)
+
+}
+
+#' create_purpleair_archive
+#'
+#' This function is deprecated. It was designed for the old (pre 2022) PurpleAir API
+#'
+#' Download and process PurpleAir for given states over a given daterange.
+#'
+#' @param dt1 Date The earliest date to search
+#' @param dt2 Date The latest date to search
+#' @param states character A vector of two-character state codes
+#' @param pas An optional pas object that contains the list of sites to search
+#'   for
+#'
+#' @return A pas-like object of PurpleAir data that can be used in further
+#'   processing
+#' @export
+#'
+#' @examples pa_data <- create_purpleair_archive(dt1, dt2, "CA")
+create_purpleair_archive <- function(dt1, dt2, states = "CA", pas = NULL) {
+
+  if (dt1 < as.Date("2019-04-06")) {
+    load_date <- "20190406"
+  } else {
+    load_date <- strftime(dt1, format = "%Y%m%d")
+  }
+
+  # Add a day to the end because of date squirrelyness
+  dt2 <- dt2 + 1
+
+  # Get the oldest possible snapshot
+  AirSensor::setArchiveBaseUrl("http://data.mazamascience.com/PurpleAir/v1")
+  if (is.null(pas)) {
+    pas <- AirSensor::pas_load(load_date, archival = TRUE) %>%
+      filter(stateCode %in% states)
+  }
+
+  ids <- AirSensor::pas_getDeviceDeploymentIDs(pas, isOutside = TRUE)
+
+  # For a given device and time range, acquire available data raw data and return
+  # 24-hr average results in a pas-like format
+  pat_to_paslike <- function(deviceDeploymentID, dt1, dt2, pas, pb) {
+
+    pb$tick()
+    try_pat <- purrr::possibly(AirSensor::pat_createNew, otherwise = NULL)
+    pat <- try_pat(id = deviceDeploymentID, pas = pas, startdate = dt1,
+                   enddate = dt2, verbose = TRUE)
+    if (is.null(pat)) {
+      return(NULL)
+    }
+
+    m <- pat$meta
+
+    # Keep only data when the two channels are tracking
+    # Keep only values that either have abs(SRD) < 0.5 or Avg < 2
+    df <- pat$data %>%
+      mutate(datetime = lubridate::with_tz(datetime, tzone = m$timezone[1]),
+             Date = lubridate::floor_date(datetime, unit = "days"),
+             SAD = (pm25_A - pm25_B) / sqrt(2),
+             Avg = (pm25_A + pm25_B) / 2,
+             SRD = SAD/Avg) %>%
+      filter(abs(SRD) <= 0.5 | Avg < 2) %>%
+      group_by(Date) %>%
+      summarise(across(pm25_A:pm10_atm_B, ~ mean(.x, na.rm = TRUE)),
+                Count = n()) %>%
+      mutate(Fraction = Count / 1440,
+             pm25_1day = (pm25_A + pm25_B) / 2,
+             ID = m$ID)
+
+    df <- right_join(m, df, by = "ID")
+
+  }
+
+
+  pb <- progress::progress_bar$new(total = length(ids))
+  pas <- purrr::map_dfr(ids, pat_to_paslike, dt1, dt2, pas, pb)
+
+}
+

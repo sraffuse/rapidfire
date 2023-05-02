@@ -171,9 +171,12 @@ openaq_get_averages <- function(sites, date_from, date_to) {
     select(id, longitude, latitude) %>%
     mutate(name = as.character(id), .keep = "unused")
 
+  ## export in the correct format:
+  ## deviceID, Date, latitude, longitude, pm25_1day
   df <- results %>%
     inner_join(site_coords, by = "name") %>%
-    select(-hour, -month, -year, -hod, -dom, -parameterId, -displayName)
+    mutate(Date = as.Date(day)) %>%
+    select(deviceID=name, Date, latitude, longitude, pm25_1day=average, measurement_count)
 
 }
 

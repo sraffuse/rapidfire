@@ -111,6 +111,7 @@ predict_locs <- function(dt1, dt2, states = "CA", model, locations,
     mutate(across(where(is.numeric),
                   ~ifelse(is.finite(.x), .x, median(.x, na.rm = TRUE))))
 
+  # How do I require randomForest be loaded here?
   results$PM25_log_RF <- predict(model, results)
   return(results)
 }
