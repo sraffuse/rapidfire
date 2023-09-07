@@ -238,24 +238,28 @@ pa_batch_download_sensors <- function(first_date, last_date, bounding_poly,
 #'
 #' @examples
 pa_build_dataset <- function(start_date, end_date, bounding_poly, api_key,
-                             sensor_folder) {
+                             sensor_folder, sensors = NULL) {
 
-  # Make sure the bounding poly is in the same crs
-  bounding_poly <- sf::st_transform(bounding_poly, crs = 4326)
+  if (is.null(sensors)) {
 
-  # Get the bounding box to query the PA API for sensors
-  bbox <- sf::st_bbox(bounding_poly)
+    # Make sure the bounding poly is in the same crs
+    bounding_poly <- sf::st_transform(bounding_poly, crs = 4326)
 
-  # Query
-  sensors_in_box <- pa_find_sensors(nwlng = bbox["xmin"], nwlat = bbox["ymax"],
-                                    selng = bbox["xmax"], selat = bbox["ymin"],
-                                    key = api_key)
+    # Get the bounding box to query the PA API for sensors
+    bbox <- sf::st_bbox(bounding_poly)
 
-  # Limit to within bounding polygon
-  sens_sf <- sf::st_as_sf(sensors_in_box, coords = c("longitude", "latitude"),
-                          crs = 4326)
-  ints <- sf::st_intersects(sens_sf, bounding_poly, sparse = FALSE)
-  sensors <- sensors_in_box[ints[,1],]
+    # Query
+    sensors_in_box <- pa_find_sensors(nwlng = bbox["xmin"], nwlat = bbox["ymax"],
+                                      selng = bbox["xmax"], selat = bbox["ymin"],
+                                      key = api_key)
+
+    # Limit to within bounding polygon
+    sens_sf <- sf::st_as_sf(sensors_in_box, coords = c("longitude", "latitude"),
+                            crs = 4326)
+    ints <- sf::st_intersects(sens_sf, bounding_poly, sparse = FALSE)
+    sensors <- sensors_in_box[ints[,1],]
+
+  }
 
   # Eliminate any sensors that do not have data within the time range
   df <- sensors %>%
@@ -275,7 +279,7 @@ pa_build_dataset <- function(start_date, end_date, bounding_poly, api_key,
       return(NULL)
     }
 
-    #TODO: Backtrace time zones to be sure this is correct
+    # This is in local time zone, which works for me in CA
     # Calculated daily mean, require at least 15 hours of data
     if (nrow(df) == 0) {
       return(NULL)
@@ -313,6 +317,7 @@ pa_build_dataset <- function(start_date, end_date, bounding_poly, api_key,
 #'
 #' @examples
 purpleair_spatial <- function(df) {
+
   df <- df %>%
     filter(pm25_1day > 0) %>%
     mutate(Purple_log = log(pm25_1day)) %>%

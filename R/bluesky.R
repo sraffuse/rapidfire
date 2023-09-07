@@ -104,6 +104,20 @@ bluesky_archive_at_locs <- function(locs, path = "./data/bluesky/archive/") {
   purrr::map_dfr(dates, one_day)
 }
 
+bluesky_nominal <- function(locs, nominal = 0.1) {
+
+  dates <- unique(locs$Day)
+
+  one_day <- function(dt) {
+    l <- locs[locs$Day == dt,]
+    df <- l@data %>%
+      mutate(PM25_bluesky = nominal)
+  }
+
+  purrr::map_dfr(dates, one_day)
+
+}
+
 
 ### The below functions are deprecated
 
