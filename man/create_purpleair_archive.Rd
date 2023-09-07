@@ -21,6 +21,9 @@ A pas-like object of PurpleAir data that can be used in further
   processing
 }
 \description{
+This function is deprecated. It was designed for the old (pre 2022) PurpleAir API
+}
+\details{
 Download and process PurpleAir for given states over a given daterange.
 }
 \examples{

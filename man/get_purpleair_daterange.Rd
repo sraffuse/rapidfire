@@ -19,7 +19,7 @@ A \emph{pas} object of outdoor PurpleAir data from the requested
   location and time period
 }
 \description{
-get_purpleair_daterange
+This function is deprecated. It was designed for the old (pre 2022) PurpleAir API
 }
 \examples{
 pa_data <- get_purpleair_daterange(dt1, dt2, "CA")

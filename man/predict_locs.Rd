@@ -31,11 +31,13 @@ this would be mod$model$finalModel}
 \item{pa_cutoff}{A cutoff value passed to \code{\link[gstat]{vgm}} for
 interploation of PurpleAir data}
 
-\item{bluesky_special}{character Handles two special cases of BlueSky data.
-If "2020", processes data prior to October 10, 2020 separately from that
-after, as the BlueSky data format changed. If "HAQAST", uses custom
+\item{bluesky_special}{character Handles three special cases of BlueSky
+data. If "2020", processes data prior to October 10, 2020 separately from
+that after, as the BlueSky data format changed. If "HAQAST", uses custom
 BlueSky-CMAQ output created during the HAQAST campaign (see
-\url{https://doi.org/10.1080/10962247.2021.1891994}{O'Neill et al., 2021}).}
+\url{https://doi.org/10.1080/10962247.2021.1891994}{O'Neill et al., 2021}).
+If "nominal", instead use a nominal placeholder value for BlueSky PM2.5 of
+0.1, which will have a near neutral impact on predictions.}
 
 \item{pa_data}{Optional PurpleAir data in pas-like format. If not provided, a
 download will be attempted.}

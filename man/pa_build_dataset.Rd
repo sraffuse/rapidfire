@@ -5,7 +5,14 @@
 \title{Compile downloaded individual sensor information from the PurpleAir API into
 a single data set covering a specified time period}
 \usage{
-pa_build_dataset(start_date, end_date, bounding_poly, api_key, sensor_folder)
+pa_build_dataset(
+  start_date,
+  end_date,
+  bounding_poly,
+  api_key,
+  sensor_folder,
+  sensors = NULL
+)
 }
 \arguments{
 \item{start_date}{Date The first date of the time period}
