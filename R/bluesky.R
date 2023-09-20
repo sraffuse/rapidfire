@@ -27,7 +27,7 @@ preprocessed_bluesky_at_airnow <- function(stack, an) {
   }
 
   # Make sure coordinates match
-  an <- sp::spTransform(an, sp::CRS(stack@srs))
+  an <- sp::spTransform(an, sp::CRS("+proj=longlat +datum=WGS84"))
 
   one_day <- function(dt, layer, an) {
 
