@@ -28,7 +28,6 @@ Imports:
     lubridate,
     tidyr,
     gstat,
-    AirSensor,
     jsonlite,
     magrittr
 Suggests:
