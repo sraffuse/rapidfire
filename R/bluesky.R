@@ -27,7 +27,7 @@ preprocessed_bluesky_at_airnow <- function(stack, an) {
   }
 
   # Make sure coordinates match
-  an <- sp::spTransform(an, sp::CRS(stack@crs@projargs))
+  an <- sp::spTransform(an, sp::CRS(stack@srs))
 
   one_day <- function(dt, layer, an) {
 
@@ -221,11 +221,10 @@ read_bluesky_archive <- function(dt, path = "./data/bluesky/archive") {
 
   # Need to both transpose and flip
   pmt <- t(pm)
-  r <- raster::raster(pmt, xmn = xmn, ymn = ymn, xmx = xmx, ymx = ymx,
-                      crs = "+proj=longlat +datum=WGS84")
+  r <- raster::raster(pmt, xmn = xmn, ymn = ymn, xmx = xmx, ymx = ymx)
 
   # crs is no longer automatically getting added
-  r@crs@projargs <- "+proj=longlat +datum=WGS84"
+  raster::projection(r) <- "+proj=longlat +datum=WGS84"
 
   # These are upside down
   r <- raster::flip(r, "y")
