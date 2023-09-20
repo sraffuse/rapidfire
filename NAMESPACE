@@ -2,12 +2,10 @@
 
 export(bluesky_archive_at_locs)
 export(create_airnow_variograms)
-export(create_purpleair_archive)
 export(create_purpleair_variograms)
 export(develop_model)
 export(get_airnow_daterange)
 export(get_airsis_daterange)
-export(get_purpleair_daterange)
 export(krige_airnow)
 export(krige_airnow_all)
 export(krige_airnow_sitedates)
