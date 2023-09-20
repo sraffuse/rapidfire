@@ -33,7 +33,8 @@
 #' pa <- "./data/purpleair/purpleair_2018.RDS"
 #' mod_2018_nov_<- develop_model(dt1, dt2, states = "CA", pa_data = pa)
 develop_model <- function(dt1, dt2, states, pa_cutoff = 100000, seed = 1977,
-                          bluesky_special = NULL, pa_data = NULL, bs_path = NULL) {
+                          bluesky_special = NULL, pa_data = NULL,
+                          bs_path = "./data/bluesky/archive/") {
 
   # Get and prep AirNow and AirSIS data
   print("AirNow and AirSIS data...")
@@ -72,7 +73,6 @@ develop_model <- function(dt1, dt2, states, pa_cutoff = 100000, seed = 1977,
       stop(paste("bluesky_special:", period, "not supported"))
     }
   } else {
-    browser()
     bluesky_stack <- stack_bluesky_archive(dt1, dt2, path = bs_path)
     bluesky <- preprocessed_bluesky_at_airnow(bluesky_stack, mon)
   }
