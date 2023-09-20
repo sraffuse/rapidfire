@@ -1,7 +1,7 @@
 # Build PurpleAir Archive for CA using new API
 #
 
-read_key <- "A7ED0D0C-A25E-11ED-B6F4-42010A800007"
+read_key <- "insert read key here"
 
 nwlng <- -124.41
 nwlat <- 42.01
@@ -18,6 +18,7 @@ sens_sf <- sf::st_as_sf(sensors_in_box, coords = c("longitude", "latitude"),
                         crs = 4326)
 ints <- sf::st_intersects(sens_sf, ca, sparse = FALSE)
 pa_ca <- sensors_in_box[ints[,1],]
+saveRDS(pa_ca, "../rapidfire_project/data/purpleair/sensors/sensor_locs.RDS")
 
 runs <- pa_ca %>%
   select(sensor_index, start_date=date_created, end_date=last_seen) %>%
