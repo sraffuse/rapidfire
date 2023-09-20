@@ -33,7 +33,7 @@
 #' pa <- "./data/purpleair/purpleair_2018.RDS"
 #' mod_2018_nov_<- develop_model(dt1, dt2, states = "CA", pa_data = pa)
 develop_model <- function(dt1, dt2, states, pa_cutoff = 100000, seed = 1977,
-                          bluesky_special = NULL, pa_data = NULL) {
+                          bluesky_special = NULL, pa_data = NULL, bs_path = NULL) {
 
   # Get and prep AirNow and AirSIS data
   print("AirNow and AirSIS data...")
@@ -72,7 +72,8 @@ develop_model <- function(dt1, dt2, states, pa_cutoff = 100000, seed = 1977,
       stop(paste("bluesky_special:", period, "not supported"))
     }
   } else {
-    bluesky_stack <- stack_bluesky_archive(dt1, dt2)
+    browser()
+    bluesky_stack <- stack_bluesky_archive(dt1, dt2, path = bs_path)
     bluesky <- preprocessed_bluesky_at_airnow(bluesky_stack, mon)
   }
 
@@ -144,16 +145,13 @@ develop_model <- function(dt1, dt2, states, pa_cutoff = 100000, seed = 1977,
     mutate(across(PM25_log_PAK:MAIAC_AOD,
                   ~if_else(is.finite(.x), .x, median(.x, na.rm = TRUE))))
 
-  # Possibly save the expensive portions
-  # saveRDS(model_in, "model_in_Aug2021.RDS")
-  # saveRDS(an_vg, "an_vg_Aug2021.RDS")
-
   # Train the model
   set.seed(seed)
   train_control <- caret::trainControl(method = "cv", number = 10)
   tune_grid <- data.frame(mtry = c(2,3,4,5))
 
-  model_in_test <- filter(model_in, Split == "Test")
+  model_in_test <- filter(model_in, Split == "Test") %>%
+    filter(!is.na(PM25_log_ANK))
 
   model <- caret::train(PM25_log ~ PM25_log_ANK + PM25_log_PAK + PM25_bluesky + MAIAC_AOD +
                           air.2m + uwnd.10m + vwnd.10m + rhum.2m + apcp + hpbl,
