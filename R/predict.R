@@ -38,10 +38,8 @@ predict_locs <- function(dt1, dt2, states = "CA", model, locations,
 
   # Get and prep AirNow and AirSIS data
   print("AirNow and AirSIS data...")
-  an_ws <- get_airnow_daterange(dt1, dt2, states) %>%
-    recast_monitors()
-  as_ws <- get_airsis_daterange(dt1, dt2, states) %>%
-    recast_monitors()
+  an_ws <- get_airnow_daterange(dt1, dt2, states)
+  as_ws <- get_airsis_daterange(dt1, dt2, states)
   mon <- rbind(an_ws, as_ws)
 
   an_vg <- create_airnow_variograms(mon)
