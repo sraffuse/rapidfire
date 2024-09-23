@@ -29,6 +29,21 @@ modis_tile_pick <- function(llat, ulat, llon, rlon) {
 
 }
 
+#' maiac_download
+#'
+#' Download MAIAC collection 6 data from the USGS archive
+#'
+#' @param dt Date to retrieve
+#' @param user Username NASA Earthdata
+#' @param password Password for NASA Earthdata
+#' @param outpath output path to write files
+#' @param tiles_needed specific MODIS tiles required for your domain. See
+#'   https://modis-land.gsfc.nasa.gov/pdf/sn_bound_10deg.txt
+#'
+#' @return
+#' @export
+#'
+#' @examples
 maiac_download <- function(dt, user, password, outpath = "./data/MAIAC/",
                            tiles_needed = c("h08v04", "h08v05", "h09v04")) {
 
